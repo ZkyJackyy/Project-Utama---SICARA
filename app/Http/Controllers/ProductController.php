@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('jenis')->latest()->paginate(5);
+        $products = Product::withTrashed()->with('jenis')->latest()->paginate(10);
         return view('admin.daftar_produk', compact('products'));
     }
 
@@ -99,5 +99,39 @@ class ProductController extends Controller
         return view('dashboard', compact('products'));
     }
 
+    public function daftarProdukCustomer()
+    {
+        // Ambil semua produk, urutkan dari yang terbaru, dan gunakan paginasi
+        // Paginate(8) berarti 8 produk per halaman
+        $products = Product::latest()->paginate(8);
+
+        // Kirim data products ke view
+        return view('produk.list', compact('products'));
+    }
+
+    public function showDetail(Product $product)
+{
+    // Logika ini sudah benar dan akan bekerja dengan ID
+    $relatedProducts = Product::where('jenis_id', $product->jenis_id)
+                                 ->where('id', '!=', $product->id)
+                                 ->latest()
+                                 ->take(4)
+                                 ->get();
+
+    // Pastikan path view Anda benar, contoh: 'customer.detail'
+    return view('produk.detail', compact('product', 'relatedProducts'));
+}
+
+public function unpublish(Product $product)
+{
+    $product->delete(); // Ini akan melakukan SOFT DELETE
+    return redirect()->back()->with('success', 'Produk berhasil disembunyikan.');
+}
+
+public function publish(Product $product)
+{
+    $product->restore(); // Ini akan mengembalikan produk dari "tong sampah"
+    return redirect()->back()->with('success', 'Produk berhasil ditampilkan kembali.');
+}
 
 }

@@ -20,7 +20,10 @@
                     <th class="px-6 py-3">Harga</th>
                     <th class="px-6 py-3">Stok</th>
                     <th class="px-6 py-3">Deskripsi</th>
+                    <th class="px-6 py-3">Status</th>
                     <th class="px-6 py-3 text-center">Aksi</th>
+                    <th class="px-6 py-3">Set Status</th>
+                    
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -35,6 +38,18 @@
                     <td class="px-6 py-4 text-gray-500">Rp {{ number_format($product->harga, 0, ',', '.') }}</td>
                     <td class="px-6 py-4 text-gray-500">{{$product->stok}}</td>
                     <td class="px-6 py-4 text-gray-500 max-w-xs truncate">{{$product->deskripsi}}</td>
+                    <td>
+                        {{-- Tampilkan status berdasarkan apakah produk di-soft delete atau tidak --}}
+                        @if ($product->trashed())
+                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                Draft (Disembunyikan)
+                            </span>
+                        @else
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                Published
+                            </span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex items-center justify-center space-x-2">
                             <form onsubmit="return confirm('Apakah Anda Yakin Ingin Menghapus Data Ini?');" action="{{ route('produk.destroy', $product->id) }}" method="POST">
@@ -45,6 +60,22 @@
                             </form>
                         </div>
                     </td>
+                    <td>
+                        {{-- Tampilkan tombol aksi yang sesuai --}}
+                        @if ($product->trashed())
+                            <form action="{{ route('produk.publish', $product->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="font-medium text-green-600 hover:underline">Publish</button>
+                        </form>
+                        @else
+                            <form action="{{ route('produk.unpublish', $product->id) }}" method="POST" onsubmit="return confirm('Anda yakin ingin menyembunyikan produk ini?');">
+                            @csrf
+                            @method('DELETE') {{-- Penting untuk route DELETE --}}
+                            <button type="submit" class="font-medium text-red-600 hover:underline">Unpublish</button>
+                        </form>
+                        @endif
+                    </td>
+
                 </tr>
                 @endforeach
             </tbody>
