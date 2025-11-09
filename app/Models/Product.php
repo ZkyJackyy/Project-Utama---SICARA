@@ -26,4 +26,8 @@ class Product extends Model
     {
         return $this->belongsTo(Jenis::class);
     }
+
+//     protected $casts = [
+//     'gambar' => 'array',
+// ];
 }

@@ -4,20 +4,50 @@ namespace App\Http\Controllers;
 
 use App\Models\Jenis;
 use App\Models\Product;
+use App\Models\Transaksi;
 use Illuminate\Http\Request;
+use App\Models\DetailTransaksi;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::withTrashed()->with('jenis')->latest()->paginate(10);
-        return view('admin.daftar_produk', compact('products'));
+        // Card 1: Total Penjualan (Hanya menghitung pesanan yang sudah "Selesai")
+        $totalPenjualan = Transaksi::where('status', 'Selesai')->sum('total');
+
+        // Card 2: Pesanan Baru (Pesanan yang perlu diproses admin)
+        $pesananBaru = Transaksi::whereIn('status', ['Menunggu Konfirmasi', 'Akan Diproses'])->count();
+
+        // Card 3: Total Stok Produk (Stok dari produk yang 'deleted_at' nya NULL)
+        // Saya asumsikan Anda memiliki kolom 'stok' di tabel 'products'
+        $totalStok = Product::whereNull('deleted_at')->sum('stok'); 
+
+        // Card 4: Produk Terjual (Hanya dari pesanan yang "Selesai")
+        $produkTerjual = DetailTransaksi::whereHas('transaksi', function ($query) {
+            $query->where('status', 'Selesai');
+        })->sum('jumlah');
+
+        // Tabel: Pesanan Terbaru (Ambil 5 data terbaru)
+        $pesananTerbaru = Transaksi::with('user')
+                            ->orderBy('created_at', 'desc')
+                            ->limit(5) // Ambil 5 pesanan paling baru
+                            ->get();
+
+        // Kirim semua data ke view
+        return view('admin.dashboard', compact(
+            'totalPenjualan',
+            'pesananBaru',
+            'totalStok',
+            'produkTerjual',
+            'pesananTerbaru'
+        ));
     }
 
     public function create()
     {
-        return view('admin.produk.tambah');
+        $categories= Jenis::all();
+        return view('admin.produk.tambah' , compact('categories'));
     }
 
     public function store(Request $request)
@@ -28,7 +58,7 @@ class ProductController extends Controller
             'jenis_id'    => 'required|exists:jenis,id',
             'harga'       => 'required|integer|min:0',
             'stok'        => 'required|integer|min:0',
-            'gambar'      => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // max 2MB
+            'gambar'      => 'required|image|mimes:jpeg,png,jpg,gif|max:10240', // max 2MB
             'deskripsi'   => 'nullable|string',
         ]);
 
@@ -85,7 +115,7 @@ class ProductController extends Controller
         }
 
         // Hapus data produk dari database
-        $product->delete();
+        $product->forceDelete();
 
         return redirect()->route('produk.index')->with('success', 'Produk berhasil dihapus!');
     } catch (\Exception $e) {
@@ -104,9 +134,10 @@ class ProductController extends Controller
         // Ambil semua produk, urutkan dari yang terbaru, dan gunakan paginasi
         // Paginate(8) berarti 8 produk per halaman
         $products = Product::latest()->paginate(8);
+        $categories = Jenis::all();
 
         // Kirim data products ke view
-        return view('produk.list', compact('products'));
+        return view('customer.produk.list', compact('products', 'categories'));
     }
 
     public function showDetail(Product $product)
@@ -119,7 +150,7 @@ class ProductController extends Controller
                                  ->get();
 
     // Pastikan path view Anda benar, contoh: 'customer.detail'
-    return view('produk.detail', compact('product', 'relatedProducts'));
+    return view('customer.produk.detail', compact('product', 'relatedProducts'));
 }
 
 public function unpublish(Product $product)

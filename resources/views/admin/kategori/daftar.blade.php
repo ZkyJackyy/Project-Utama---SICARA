@@ -21,7 +21,7 @@
                     <th class="px-6 py-3 w-20 text-center">No</th>
                     
                     {{-- Kolom Nama Kategori --}}
-                    <th class="px-6 py-3">Nama Kategori</th>
+                    <th class="px-6 py-3">Kategori</th>
                     
                     {{-- Kolom Aksi --}}
                     <th class="px-6 py-3 w-40 text-center">Aksi</th>

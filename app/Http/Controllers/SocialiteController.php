@@ -46,7 +46,7 @@ class SocialiteController extends Controller
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
-                    'password' => Hash::make(Str::random(24)) // Buat password acak
+                    // 'password' => Hash::make(Str::random(24)) // Buat password acak
                 ]);
 
                 Auth::login($newUser);

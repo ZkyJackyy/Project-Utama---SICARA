@@ -26,10 +26,9 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                     required>
                 <option value="">-- Pilih Jenis Kue --</option>
-                <option value="1">Kue Bolu</option>
-                <option value="2">Kue Kering</option>
-                <option value="3">Kue Ulang Tahun</option>
-                <option value="4">Brownies</option>
+                @foreach ($categories as $category)
+                    <option value="{{ $category->id }}">{{ $category->jenis_produk }}</option>
+                @endforeach
             </select>
         </div>
 

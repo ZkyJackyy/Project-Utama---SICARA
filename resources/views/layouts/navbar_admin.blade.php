@@ -37,10 +37,11 @@
                     <i class="fas fa-tags w-6 text-center"></i>
                     <span class="mx-3 font-medium">Kategori</span>
                 </a>
-                <a href="#" class="flex items-center px-5 py-3 text-pink-100 hover:bg-pink-600 hover:text-white rounded-lg transition">
-                    <i class="fas fa-users w-6 text-center"></i>
-                    <span class="mx-3 font-medium">Pelanggan</span>
+                <a href="{{ route('admin.pesanan.index') }}" class="flex items-center px-5 py-3 text-pink-100 hover:bg-pink-600 hover:text-white rounded-lg transition">
+                    <i class="fas fa-box w-6 text-center"></i>
+                    <span class="mx-3 font-medium">Pesanan</span>
                 </a>
+
                 <a href="#" class="flex items-center px-5 py-3 text-pink-100 hover:bg-pink-600 hover:text-white rounded-lg transition">
                     <i class="fas fa-chart-line w-6 text-center"></i>
                     <span class="mx-3 font-medium">Laporan</span>

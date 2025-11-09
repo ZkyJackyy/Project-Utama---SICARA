@@ -6,6 +6,9 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\PesananController;
 
 // ================== HOME (Customer) ==================
 Route::get('/', [ProductController::class, 'indexHome'])->name('dashboard');
@@ -24,16 +27,22 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ================== DASHBOARD (Role-based) ==================
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::view('/dashboard-admin', 'admin.dashboard')->name('dashboard.admin');
+    Route::get('/dashboard-admin', [ProductController::class, 'index'])->name('dashboard.admin');
 
-    // CRUD Produk hanya untuk admin
+    // CRUD Produk
     Route::get('/daftar-produk', [ProductController::class, 'index'])->name('produk.index');
     Route::get('/tambah-produk', [ProductController::class, 'create'])->name('produk.create');
     Route::post('/store-produk', [ProductController::class, 'store'])->name('produk.store');
     Route::get('/produk/{product}/edit', [ProductController::class, 'edit'])->name('produk.edit');
     Route::put('/produk/{product}', [ProductController::class, 'update'])->name('produk.update');
     Route::delete('/hapus-produk/{product}', [ProductController::class, 'destroy'])->name('produk.destroy');
+
+    // ✅ Tambahan: Manajemen Pesanan
+    Route::get('/admin/pesanan', [App\Http\Controllers\PesananController::class, 'index'])->name('admin.pesanan.index');
+    Route::get('/admin/pesanan/{id}', [App\Http\Controllers\PesananController::class, 'show'])->name('admin.pesanan.show');
+    Route::put('/admin/pesanan/{id}/status', [App\Http\Controllers\PesananController::class, 'updateStatus'])->name('admin.pesanan.updateStatus');
 });
+
 
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::view('/dashboard-user', 'dashboard')->name('dashboard.user');
@@ -47,6 +56,8 @@ Route::get('/auth/google/callback', [SocialiteController::class, 'handleGoogleCa
 Route::middleware('auth')->group(function () {
     Route::get('/profil', [UserController::class, 'showProfil'])->name('profile.show');
     Route::put('/profil/update', [UserController::class, 'updateProfil'])->name('profile.update');
+Route::put('/password/update', [UserController::class, 'updatePassword'])->name('password.update');
+
 });
 
 
@@ -61,8 +72,8 @@ Route::delete('/category/{category}', [CategoryController::class, 'destroy'])->n
 
 //customer
 
-Route::get('/products', [ProductController::class, 'daftarProdukCustomer'])->name('produk.list');
-Route::get('/produk/{product}', [ProductController::class, 'showDetail'])->name('produk.detail');
+Route::get('/products', [ProductController::class, 'daftarProdukCustomer'])->name('customer.produk.list');
+Route::get('/produk/{product}', [ProductController::class, 'showDetail'])->name('customer.produk.detail');
 
 Route::delete('/admin/produk/{product}/unpublish', [ProductController::class, 'unpublish'])->name('produk.unpublish');
 
@@ -70,3 +81,25 @@ Route::delete('/admin/produk/{product}/unpublish', [ProductController::class, 'u
 Route::post('/admin/produk/{product}/publish', [ProductController::class, 'publish'])
     ->name('produk.publish')
     ->withTrashed();
+
+// ================== KERANJANG (CUSTOMER) ==================
+Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::get('/keranjang', [KeranjangController::class, 'index'])->name('keranjang.index');
+    Route::post('/keranjang/tambah/{product}', [KeranjangController::class, 'tambah'])->name('keranjang.tambah');
+    Route::put('/keranjang/update/{id}', [KeranjangController::class, 'update'])->name('keranjang.update');
+    Route::delete('/keranjang/hapus/{id}', [KeranjangController::class, 'hapus'])->name('keranjang.hapus');
+});
+
+// ================== CHECKOUT (CUSTOMER) ==================
+Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout/proses', [CheckoutController::class, 'proses'])->name('checkout.proses');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pesanan-saya', [App\Http\Controllers\PesananController::class, 'pesananCustomer'])
+        ->name('customer.pesanan.index');
+});
+
+
+
