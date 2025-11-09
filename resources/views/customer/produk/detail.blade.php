@@ -81,9 +81,10 @@
             Tambah ke Keranjang
         </button>
 
-        <button type="button" class="w-full bg-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-pink-700 transition-colors duration-300">
+        <a href="{{ route('checkout') }}" 
+        class="block w-full bg-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-pink-700 transition-colors duration-300 text-center">
             Beli Sekarang
-        </button>
+        </a>
     </div>
 </form>
 
