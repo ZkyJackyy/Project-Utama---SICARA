@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function dashboard()
     {
         // Card 1: Total Penjualan (Hanya menghitung pesanan yang sudah "Selesai")
         $totalPenjualan = Transaksi::where('status', 'Selesai')->sum('total');
@@ -42,6 +42,13 @@ class ProductController extends Controller
             'produkTerjual',
             'pesananTerbaru'
         ));
+    }
+    public function index()
+    {
+        $products = Product::withTrashed()->with('jenis')->latest()->paginate(10);
+
+        return view('admin.daftar_produk', compact('products'));
+        
     }
 
     public function create()
