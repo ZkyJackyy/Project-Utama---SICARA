@@ -17,7 +17,7 @@ class ProductController extends Controller
         $totalPenjualan = Transaksi::where('status', 'Selesai')->sum('total');
 
         // Card 2: Pesanan Baru (Pesanan yang perlu diproses admin)
-        $pesananBaru = Transaksi::whereIn('status', ['Menunggu Konfirmasi', 'Akan Diproses'])->count();
+        $pesananBaru = Transaksi::whereIn('status', ['Akan Diproses', 'diproses'])->count();
 
         // Card 3: Total Stok Produk (Stok dari produk yang 'deleted_at' nya NULL)
         // Saya asumsikan Anda memiliki kolom 'stok' di tabel 'products'
