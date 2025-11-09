@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    public function index()
+
+    //tadi ubah ini --nashwa
+    public function dashboard()
     {
         // Card 1: Total Penjualan (Hanya menghitung pesanan yang sudah "Selesai")
         $totalPenjualan = Transaksi::where('status', 'Selesai')->sum('total');
@@ -21,7 +23,7 @@ class ProductController extends Controller
 
         // Card 3: Total Stok Produk (Stok dari produk yang 'deleted_at' nya NULL)
         // Saya asumsikan Anda memiliki kolom 'stok' di tabel 'products'
-        $totalStok = Product::whereNull('deleted_at')->sum('stok'); 
+        $totalStok = Product::whereNull('deleted_at')->sum('stok');
 
         // Card 4: Produk Terjual (Hanya dari pesanan yang "Selesai")
         $produkTerjual = DetailTransaksi::whereHas('transaksi', function ($query) {
@@ -44,6 +46,11 @@ class ProductController extends Controller
         ));
     }
 
+        public function index()
+    {
+        $products = Product::latest()->paginate(10);
+        return view('admin.daftar_produk', compact('products'));
+    }
     public function create()
     {
         $categories= Jenis::all();

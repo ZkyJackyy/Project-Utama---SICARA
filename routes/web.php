@@ -27,8 +27,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ================== DASHBOARD (Role-based) ==================
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/dashboard-admin', [ProductController::class, 'index'])->name('dashboard.admin');
-
+    Route::get('/dashboard-admin', [ProductController::class, 'dashboard'])->name('dashboard.admin');
+     //sama ubah ini juga -- nashwa
     // CRUD Produk
     Route::get('/daftar-produk', [ProductController::class, 'index'])->name('produk.index');
     Route::get('/tambah-produk', [ProductController::class, 'create'])->name('produk.create');
