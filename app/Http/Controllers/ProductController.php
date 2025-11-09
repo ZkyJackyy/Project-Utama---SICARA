@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    //ini
     public function dashboard()
     {
         // Card 1: Total Penjualan (Hanya menghitung pesanan yang sudah "Selesai")
