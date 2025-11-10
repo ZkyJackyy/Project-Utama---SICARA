@@ -16,6 +16,7 @@ class Transaksi extends Model
         'bukti_pembayaran',
         'total',
         'status',
+        'is_custom',
     ];
 
     // ✅ Tambahkan relasi ke user

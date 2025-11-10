@@ -73,7 +73,6 @@
                 <li><a href="/" class="nav-link {{ request()->is('/') ? 'active' : '' }}">Home</a></li>
                 <li><a href="{{ route('customer.produk.list') }}" class="nav-link {{ request()->is('produk*') ? 'active' : '' }}">Shop</a></li>
                 <li><a href="{{ route('custom-cake.index') }}" class="nav-link">Custome Cake</a></li>
-                <li><a href="#contact" class="nav-link">Contact</a></li>
             </ul>
 
             {{-- User + Cart + Mobile --}}

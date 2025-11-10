@@ -84,7 +84,7 @@
 
 
 {{-- Tentang Dara Cake --}}
-<section class="relative py-28 font-['Poppins'] text-white bg-[#700207]">
+<section class="relative py-28 font-['Poppins'] text-white bg-[#79533E]">
 
     <div class="relative z-20 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16 px-8">
 
