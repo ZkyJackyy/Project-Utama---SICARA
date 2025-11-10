@@ -5,7 +5,7 @@
 @section('content')
 
 {{-- Latar belakang pink muda --}}
-<div class="bg-pink-50 min-h-screen py-12">
+<div class="bg-[#ECE6DA] min-h-screen py-12">
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             

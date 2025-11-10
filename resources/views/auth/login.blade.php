@@ -3,12 +3,11 @@
 @section('title', 'Login')
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center bg-cover bg-center px-4 pt-28 md:pt-32 relative" 
-     style="background-image: url('{{ asset('gambar/bg7.jpg') }}');">
+<div class="min-h-screen flex items-center justify-center bg-cover bg-center px-4 pt-28 md:pt-32 relative bg-[#ECE6DA]">
     {{-- 🌸 Kartu Utama --}}
     <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex w-full max-w-4xl animate-fade-in">
 
- {{-- 💕 Bagian Kiri (Gradasi + Gambar di Tengah) --}}
+{{-- 💕 Bagian Kiri (Gradasi + Gambar di Tengah) --}}
 <div class="hidden md:flex w-1/2 items-center justify-center relative animate-slide-left overflow-hidden bg-cover bg-center" 
      style="background-image: url('{{ asset('gambar/bg22.jpg') }}');">
 
@@ -25,7 +24,8 @@
         <div class="w-full md:w-1/2 p-10 flex flex-col justify-center animate-slide-right">
             <div class="flex flex-col items-center mb-8">
                 <img src="{{ asset('gambar/5.png') }}" alt="Logo" class="w-20 mb-3 animate-float">
-                <h1 class="text-pink-500 text-2xl font-bold">LOGIN</h1>
+                {{-- Judul (Diubah ke warna merah marun) --}}
+                <h1 class="text-[#700207] text-2xl font-bold">LOGIN</h1>
             </div>
 
             <form action="{{ route('login.post') }}" method="POST" class="space-y-5">
@@ -35,28 +35,20 @@
                 <div class="relative">
                     <i class="fa fa-envelope absolute top-3 left-4 text-gray-400"></i>
                     <input type="email" name="email" id="email"
-                        class="w-full pl-11 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-400 outline-none transition 
-                                @error('email') border-red-500 focus:ring-red-500 @enderror" {{-- Opsional: Tambah border merah --}}
-                        placeholder="Email" required value="{{ old('email') }}">
-
-                    {{-- 
-                    Tampilkan error JIKA ada error dengan key 'email' 
-                    $message adalah variabel otomatis dari Laravel yang berisi pesan errornya.
-                    --}}
-                    
+                           {{-- Focus ring (Diubah ke warna merah marun) --}}
+                           class="w-full pl-11 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#700207] outline-none transition 
+                                @error('email') border-red-500 focus:ring-red-500 @enderror"
+                           placeholder="Email" required value="{{ old('email') }}">
                 </div>
 
                 {{-- Password --}}
-                <div class="relative mt-5"> {{-- Tambahkan margin top jika error tampil --}}
+                <div class="relative mt-5">
                     <i class="fa fa-lock absolute top-3 left-4 text-gray-400"></i>
                     <input type="password" name="password" id="password"
-                        class="w-full pl-11 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-400 outline-none transition"
-                        placeholder="Password" required>
+                           {{-- Focus ring (Diubah ke warna merah marun) --}}
+                           class="w-full pl-11 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#700207] outline-none transition"
+                           placeholder="Password" required>
                     
-                    {{-- 
-                    Anda juga bisa menampilkan error password di sini jika ada, 
-                    meskipun untuk login kita gabung di 'email'
-                    --}}
                     @error('email')
                         <span class="text-red-600 text-sm absolute -bottom-5 left-0">
                             {{ $message }}
@@ -66,12 +58,13 @@
 
                 {{-- Lupa Password --}}
                 <div class="text-right">
-                    <a href="#" class="text-sm text-pink-500 hover:underline">Forgot Password?</a>
+                    {{-- Link (Diubah ke warna merah marun) --}}
+                    <a href="#" class="text-sm text-[#700207] hover:underline">Forgot Password?</a>
                 </div>
 
-                {{-- Tombol Login --}}
+                {{-- Tombol Login (Diubah ke warna merah marun) --}}
                 <button type="submit"
-                    class="w-full bg-pink-500 text-white py-2.5 rounded-lg font-semibold hover:bg-pink-600 transition-all transform hover:scale-105 hover:shadow-md">
+                        class="w-full bg-[#700207] text-white py-2.5 rounded-lg font-semibold hover:bg-[#4a0105] transition-all transform hover:scale-105 hover:shadow-md">
                     LOGIN
                 </button>
 
@@ -82,7 +75,7 @@
                     <div class="flex-1 h-px bg-gray-300"></div>
                 </div>
 
-                {{-- Tombol Google & Facebook --}}
+                {{-- Tombol Google --}}
                 <div class="flex gap-3">
                     <a href="{{ route('google.redirect') }}"
                         class="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
@@ -94,12 +87,14 @@
                 {{-- Daftar --}}
                 <p class="text-center text-sm text-gray-500 mt-5">
                     Don’t have an account?
-                    <a href="{{ route('register') }}" class="text-pink-500 font-semibold hover:underline">Sign up</a>
+                    {{-- Link (Diubah ke warna merah marun) --}}
+                    <a href="{{ route('register') }}" class="text-[#700207] font-semibold hover:underline">Sign up</a>
                 </p>
             </form>
         </div>
     </div>
 </div>
+
 
 {{-- ✨ Animasi Kustom --}}
 <style>
