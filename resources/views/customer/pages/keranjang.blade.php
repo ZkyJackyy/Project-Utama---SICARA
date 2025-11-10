@@ -50,8 +50,16 @@
                             </div>
                             <div>
                                 <h2 class="text-lg font-semibold text-gray-800">{{ $item['nama_produk'] }}</h2>
-                                {{-- Harga dibuat standar agar tidak bentrok dengan link --}}
-                                <p class="text-gray-700 font-medium mt-1">Rp {{ number_format($item['harga'], 0, ',', '.') }}</p>
+
+                                {{-- TAMPILKAN DESKRIPSI JIKA INI PRODUK KUSTOM --}}
+                                @if (isset($item['custom_deskripsi']))
+                                    <p class="text-sm text-gray-600 mt-1 max-w-xs">
+                                        {{ $item['custom_deskripsi'] }}
+                                    </p>
+                                @endif
+                                {{-- ========================================== --}}
+
+                                <p class="text-indigo-600 font-medium mt-1">Rp {{ number_format($item['harga'], 0, ',', '.') }}</p>
                             </div>
                         </div>
 

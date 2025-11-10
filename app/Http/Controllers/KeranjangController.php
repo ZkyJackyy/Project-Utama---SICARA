@@ -9,34 +9,42 @@ class KeranjangController extends Controller
 {
     // 🛒 Menampilkan isi keranjang
     public function index()
-    {
-        $cart = session()->get('cart', []);
-        $total = collect($cart)->sum(function ($item) {
-            return $item['harga'] * $item['jumlah'];
-        });
+     {
+          $cart = session()->get('cart', []);
+          $total = collect($cart)->sum(function ($item) {
+               return $item['harga'] * $item['jumlah'];
+          });
 
-        // Cek ulang stok saat melihat keranjang
-        $stok_berubah = false;
-        foreach ($cart as $id => $item) {
-            $product = Product::find($id);
-            if (!$product) {
-                unset($cart[$id]);
-                $stok_berubah = true;
-            } elseif ($item['jumlah'] > $product->stok) {
-                $cart[$id]['jumlah'] = $product->stok; // Set ke stok maks
-                $stok_berubah = true;
-            }
-        }
+          // Cek ulang stok saat melihat keranjang
+          $stok_berubah = false;
+          foreach ($cart as $id => $item) {
+               
+               // === TAMBAHAN UNTUK FIX BUG ===
+               // Jika ini adalah produk kustom, lewati pengecekan stok
+               if (isset($item['produk_id_dasar'])) {
+                    continue; // Lanjut ke item berikutnya
+               }
+               // === AKHIR TAMBAHAN ===
 
-        if ($stok_berubah) {
-            session()->put('cart', $cart);
-            // Hitung ulang total jika ada perubahan
-            $total = collect($cart)->sum(fn($item) => $item['harga'] * $item['jumlah']);
-            return view('customer.pages.keranjang', compact('cart', 'total'))->with('warning', 'Stok beberapa produk telah disesuaikan.');
-        }
+               $product = Product::find($id); // Ini sekarang aman
+               if (!$product) {
+                    unset($cart[$id]); 
+                    $stok_berubah = true;
+               } elseif ($item['jumlah'] > $product->stok) {
+                    $cart[$id]['jumlah'] = $product->stok; // Set ke stok maks
+                    $stok_berubah = true;
+               }
+          }
 
-        return view('customer.pages.keranjang', compact('cart', 'total'));
-    }
+          if ($stok_berubah) {
+               session()->put('cart', $cart);
+               // Hitung ulang total jika ada perubahan
+               $total = collect($cart)->sum(fn($item) => $item['harga'] * $item['jumlah']);
+               return view('customer.pages.keranjang', compact('cart', 'total'))->with('warning', 'Stok beberapa produk telah disesuaikan.');
+          }
+
+          return view('customer.pages.keranjang', compact('cart', 'total'));
+     }
 
     // ➕ Tambah produk ke keranjang (DENGAN VALIDASI STOK)
     public function tambah(Request $request, $id)
@@ -140,5 +148,43 @@ class KeranjangController extends Controller
         }
 
         return redirect()->route('keranjang.index')->with('success', 'Produk dihapus dari keranjang.');
+    }
+
+
+    public function tambahCustom(Request $request)
+    {
+        $cart = session()->get('cart', []);
+        
+        // Buat ID unik untuk item keranjang kustom ini
+        $customId = 'custom_' . time(); 
+        
+        // Kumpulkan semua deskripsi
+        $deskripsi = "Ukuran: " . $request->ukuran . ", Rasa: " . $request->rasa;
+        
+        if ($request->has('toppings')) {
+            $deskripsi .= ", Topping: " . implode(', ', $request->toppings);
+        }
+        if ($request->tulisan) {
+            $deskripsi .= ", Tulisan: '" . $request->tulisan . "'";
+        }
+
+        // Ambil gambar dari produk dasar (ID 50)
+        // GANTI 50 DENGAN ID PRODUK "Kue Kustom" ANDA
+        $baseProduct = Product::find(23);
+        $imageUrl = $baseProduct ? asset('storage/produk/' . $baseProduct->gambar) : '/images/default.jpg';
+
+        $cart[$customId] = [
+            'id' => $customId, // Gunakan ID unik
+            'produk_id_dasar' => $baseProduct->id, // Simpan ID produk asli
+            'nama_produk' => 'Kue Kustom (' . $request->ukuran . ')',
+            'harga' => $request->final_price, // Ambil harga final dari form
+            'jumlah' => 1,
+            'image_url' => $imageUrl,
+            'custom_deskripsi' => $deskripsi // Simpan deskripsi kustom
+        ];
+        
+        session()->put('cart', $cart);
+
+        return redirect()->route('keranjang.index')->with('success', 'Kue kustom berhasil ditambahkan ke keranjang!');
     }
 }

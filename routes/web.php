@@ -94,6 +94,9 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout/proses', [CheckoutController::class, 'proses'])->name('checkout.proses');
+    
+    Route::get('/custom-cake', [ProductController::class, 'showCustomCakeForm'])->name('custom-cake.index');
+Route::post('/keranjang/tambah-custom', [KeranjangController::class, 'tambahCustom'])->name('keranjang.tambahCustom');
 });
 
 Route::middleware(['auth'])->group(function () {

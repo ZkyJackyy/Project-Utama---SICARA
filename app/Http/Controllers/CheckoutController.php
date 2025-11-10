@@ -36,9 +36,16 @@ class CheckoutController extends Controller
         $total = collect($cart)->sum(fn($item) => $item['harga'] * $item['jumlah']);
 
         // --- 🔒 TAHAP 1: VALIDASI STOK FINAL ---
-        // Kita cek stok sekali lagi TEPAT SEBELUM checkout
         foreach ($cart as $item) {
-            $product = Product::find($item['id']);
+            
+            // === TAMBAHAN UNTUK FIX BUG ===
+            // Jika ini adalah produk kustom, lewati pengecekan stok
+            if (isset($item['produk_id_dasar'])) {
+                continue; // Lanjut ke item berikutnya
+            }
+            // === AKHIR TAMBAHAN ===
+
+            $product = Product::find($item['id']); // Ini sekarang aman
             
             if (!$product) {
                 return redirect()->route('keranjang.index')
@@ -77,17 +84,27 @@ class CheckoutController extends Controller
 
             // Simpan detail transaksi DAN kurangi stok
             foreach ($cart as $item) {
-                DetailTransaksi::create([
+            
+                // Tentukan ID produk dan catatan
+                $produkId = isset($item['produk_id_dasar']) ? $item['produk_id_dasar'] : $item['id'];
+                $catatan = $item['custom_deskripsi'] ?? null;
+
+                 DetailTransaksi::create([
                     'transaksi_id' => $transaksi->id,
-                    'produk_id' => $item['id'],
+                    'produk_id' => $produkId, // Gunakan ID produk yang benar
                     'jumlah' => $item['jumlah'],
                     'harga' => $item['harga'],
-                ]);
+                    'catatan' => $catatan // Simpan deskripsi kustom di sini
+                 ]);
 
-                // Kurangi stok dari database
-                $product = Product::find($item['id']);
-                $product->stok -= $item['jumlah'];
-                $product->save();
+                 // Kurangi stok HANYA jika bukan produk kustom
+                if (!isset($item['produk_id_dasar'])) {
+                     $product = Product::find($produkId);
+                     if ($product) {
+                         $product->stok -= $item['jumlah']; 
+                         $product->save();
+                     }
+                }
             }
 
             DB::commit(); // Semua berhasil, simpan perubahan
