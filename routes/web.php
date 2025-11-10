@@ -99,6 +99,8 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/pesanan-saya', [App\Http\Controllers\PesananController::class, 'pesananCustomer'])
         ->name('customer.pesanan.index');
+    Route::put('/pesanan-saya/{transaksi}/batal', [App\Http\Controllers\PesananController::class, 'batalPesanan'])
+        ->name('customer.pesanan.batal');
 });
 
 

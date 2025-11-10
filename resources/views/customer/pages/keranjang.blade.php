@@ -10,12 +10,29 @@
 
         {{-- Header --}}
         <div class="p-8 border-b border-gray-200/60 flex flex-col sm:flex-row justify-between sm:items-center">
+            
+            
+
             <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Keranjang Belanja</h1>
             <a href="{{ route('customer.produk.list') }}" 
                class="text-sm text-indigo-600 font-medium hover:text-indigo-800 transition mt-3 sm:mt-0">
                 ← Kembali Belanja
             </a>
+
         </div>
+
+        @if (session('error'))
+                <div class="m-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Oops!</strong>
+                    <span class="block sm:inline">{{ session('error') }}</span>
+                </div>
+            @endif
+            @if (session('warning'))
+                <div class="m-6 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Info:</strong>
+                    <span class="block sm:inline">{{ session('warning') }}</span>
+                </div>
+            @endif
 
         @if(count($cart ?? []) > 0)
             {{-- Daftar Item --}}

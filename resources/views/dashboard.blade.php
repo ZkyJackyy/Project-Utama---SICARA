@@ -46,7 +46,7 @@
 
                 {{-- Gambar --}}
                 <div class="overflow-hidden rounded-2xl mb-6">
-                    <img src="{{ asset('storage/' . $produk->produk) }}" 
+                    <img src="{{ asset('storage/produk/' . $produk->gambar) }}" 
                         alt="{{ $produk->nama_produk }}"
                         class="w-full h-60 object-cover rounded-2xl transform group-hover:scale-110 duration-500">
                 </div>
@@ -91,7 +91,7 @@
         {{-- Gambar --}}
         <div class="md:w-1/2 flex justify-center">
             <div class="relative w-80 h-80 rounded-3xl overflow-hidden shadow-2xl border-4 border-[#ECCFC3] group">
-                <img src="{{ asset('gambar/dara_cake_team.jpg') }}" 
+                <img src="{{ asset('gambar/kue5.png') }}" 
                      alt="Dara Cake Team" 
                      class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>

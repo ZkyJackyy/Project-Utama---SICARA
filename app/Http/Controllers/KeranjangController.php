@@ -15,46 +15,118 @@ class KeranjangController extends Controller
             return $item['harga'] * $item['jumlah'];
         });
 
+        // Cek ulang stok saat melihat keranjang
+        $stok_berubah = false;
+        foreach ($cart as $id => $item) {
+            $product = Product::find($id);
+            if (!$product) {
+                unset($cart[$id]);
+                $stok_berubah = true;
+            } elseif ($item['jumlah'] > $product->stok) {
+                $cart[$id]['jumlah'] = $product->stok; // Set ke stok maks
+                $stok_berubah = true;
+            }
+        }
+
+        if ($stok_berubah) {
+            session()->put('cart', $cart);
+            // Hitung ulang total jika ada perubahan
+            $total = collect($cart)->sum(fn($item) => $item['harga'] * $item['jumlah']);
+            return view('customer.pages.keranjang', compact('cart', 'total'))->with('warning', 'Stok beberapa produk telah disesuaikan.');
+        }
+
         return view('customer.pages.keranjang', compact('cart', 'total'));
     }
 
-    // ➕ Tambah produk ke keranjang
+    // ➕ Tambah produk ke keranjang (DENGAN VALIDASI STOK)
     public function tambah(Request $request, $id)
-{
-    $product = Product::findOrFail($id);
-    $cart = session()->get('cart', []);
+    {
+        $product = Product::findOrFail($id);
+        $jumlah_baru = max(1, (int) $request->jumlah);
+        $action = $request->input('action');
+        $cart = session()->get('cart', []);
 
-    $jumlah = max(1, (int) $request->jumlah);
+        // Tentukan jumlah yang ada di keranjang sebelumnya
+        $jumlah_di_keranjang = 0;
+        if ($action == 'add_to_cart' && isset($cart[$id])) {
+            $jumlah_di_keranjang = $cart[$id]['jumlah'];
+        }
 
-    if (isset($cart[$id])) {
-        $cart[$id]['jumlah'] += $jumlah;
-    } else {
+        // Jika 'Beli Sekarang', keranjang direset
+        if ($action == 'buy_now') {
+            session()->forget('cart');
+            $cart = [];
+            $jumlah_di_keranjang = 0;
+        }
+
+        // Hitung total yang diminta
+        $total_diminta = $jumlah_di_keranjang + $jumlah_baru;
+
+        // --- 🔒 VALIDASI STOK ---
+        if ($total_diminta > $product->stok) {
+            return redirect()->back()
+                ->with('error', 'Stok tidak mencukupi! Sisa stok untuk ' . $product->nama_produk . ' hanya ' . $product->stok . ' unit.')
+                ->withInput();
+        }
+        // --- AKHIR VALIDASI ---
+
+        // Lolos validasi, tambahkan ke keranjang
         $cart[$id] = [
             'id' => $product->id,
             'nama_produk' => $product->nama_produk,
             'harga' => $product->harga,
             'image_url' => $product->gambar ? asset('storage/produk/' . $product->gambar) : '/images/default.jpg',
-            'jumlah' => $jumlah,
+            'jumlah' => $total_diminta, // Set jumlah total yang sudah divalidasi
         ];
+
+        session()->put('cart', $cart);
+
+        // Redirect berdasarkan aksi
+        if ($action == 'buy_now') {
+            return redirect()->route('checkout');
+        }
+
+        return redirect()->route('keranjang.index')->with('success', 'Produk berhasil ditambahkan ke keranjang!');
     }
 
-    session()->put('cart', $cart);
 
-    return redirect()->route('keranjang.index')->with('success', 'Produk berhasil ditambahkan ke keranjang!');
-}
-
-
-    // 🔄 Update jumlah produk di keranjang
+    // 🔄 Update jumlah produk (DENGAN VALIDASI STOK)
     public function update(Request $request, $id)
     {
         $cart = session()->get('cart', []);
+        $jumlah_diminta = (int) $request->jumlah;
 
-        if (isset($cart[$id])) {
-            $cart[$id]['jumlah'] = (int) $request->jumlah;
-            session()->put('cart', $cart);
+        // Validasi minimal 1
+        if ($jumlah_diminta < 1) {
+            return redirect()->route('keranjang.index')->with('error', 'Jumlah minimal adalah 1.');
         }
 
-        return redirect()->route('keranjang.index')->with('success', 'Jumlah produk diperbarui.');
+        // Cek produk dan stoknya
+        $product = Product::find($id);
+
+        if (isset($cart[$id]) && $product) {
+            
+            // --- 🔒 VALIDASI STOK ---
+            if ($jumlah_diminta > $product->stok) {
+                // Jangan perbarui, kembalikan dengan pesan error
+                return redirect()->back()
+                    ->with('error', 'Stok tidak mencukupi! Sisa stok untuk ' . $product->nama_produk . ' hanya ' . $product->stok . ' unit.');
+            }
+            // --- AKHIR VALIDASI ---
+
+            // Lolos validasi, update keranjang
+            $cart[$id]['jumlah'] = $jumlah_diminta;
+            session()->put('cart', $cart);
+            return redirect()->route('keranjang.index')->with('success', 'Jumlah produk diperbarui.');
+
+        } elseif (!$product) {
+            // Jika produk tiba-tiba dihapus oleh admin
+            unset($cart[$id]);
+            session()->put('cart', $cart);
+            return redirect()->route('keranjang.index')->with('error', 'Produk tidak lagi tersedia dan telah dihapus dari keranjang.');
+        }
+
+        return redirect()->route('keranjang.index');
     }
 
     // ❌ Hapus item dari keranjang

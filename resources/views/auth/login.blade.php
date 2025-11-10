@@ -35,16 +35,33 @@
                 <div class="relative">
                     <i class="fa fa-envelope absolute top-3 left-4 text-gray-400"></i>
                     <input type="email" name="email" id="email"
-                        class="w-full pl-11 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-400 outline-none transition"
-                        placeholder="Email" required>
+                        class="w-full pl-11 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-400 outline-none transition 
+                                @error('email') border-red-500 focus:ring-red-500 @enderror" {{-- Opsional: Tambah border merah --}}
+                        placeholder="Email" required value="{{ old('email') }}">
+
+                    {{-- 
+                    Tampilkan error JIKA ada error dengan key 'email' 
+                    $message adalah variabel otomatis dari Laravel yang berisi pesan errornya.
+                    --}}
+                    
                 </div>
 
                 {{-- Password --}}
-                <div class="relative">
+                <div class="relative mt-5"> {{-- Tambahkan margin top jika error tampil --}}
                     <i class="fa fa-lock absolute top-3 left-4 text-gray-400"></i>
                     <input type="password" name="password" id="password"
                         class="w-full pl-11 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-400 outline-none transition"
                         placeholder="Password" required>
+                    
+                    {{-- 
+                    Anda juga bisa menampilkan error password di sini jika ada, 
+                    meskipun untuk login kita gabung di 'email'
+                    --}}
+                    @error('email')
+                        <span class="text-red-600 text-sm absolute -bottom-5 left-0">
+                            {{ $message }}
+                        </span>
+                    @enderror
                 </div>
 
                 {{-- Lupa Password --}}

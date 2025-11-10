@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Transaksi;
 use App\Models\User;
+use App\Models\Product;
+use App\Models\Transaksi;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class PesananController extends Controller
@@ -32,11 +34,18 @@ class PesananController extends Controller
         ]);
 
         $pesanan = Transaksi::findOrFail($id);
+
+        // === LOGIKA BARU DITAMBAHKAN DI SINI ===
+        // Jika statusnya sudah 'Dibatalkan', jangan biarkan admin mengubahnya.
+        if ($pesanan->status == 'Dibatalkan') {
+            return redirect()->route('admin.pesanan.show', $pesanan->id)
+                             ->with('error', 'Status pesanan yang sudah Dibatalkan oleh customer tidak dapat diubah.');
+        }
+        // === AKHIR LOGIKA BARU ===
+
         $pesanan->status = $request->status;
         $pesanan->save();
 
-        // --- PERUBAHAN DI SINI ---
-        // Redirect kembali ke halaman detail yang sama, bukan ke index.
         return redirect()->route('admin.pesanan.show', $pesanan->id)
                          ->with('success', 'Status pesanan berhasil diperbarui!');
     }
@@ -50,5 +59,45 @@ class PesananController extends Controller
                     ->get();
 
         return view('customer.pesanan.index', compact('pesanan'));
+    }
+
+    public function batalPesanan(Request $request, Transaksi $transaksi)
+    {
+        // 1. Cek Kepemilikan (Pastikan user hanya bisa batalkan pesanannya sendiri)
+        if ($transaksi->user_id != Auth::id()) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // 2. Cek Status (Hanya status tertentu yang boleh dibatalkan)
+        $allowedStatus = ['Menunggu Konfirmasi'];
+        if (!in_array($transaksi->status, $allowedStatus)) {
+            return redirect()->back()->with('error', 'Pesanan ini tidak dapat dibatalkan lagi.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 3. Kembalikan Stok
+            foreach ($transaksi->detailTransaksi as $detail) {
+                // Gunakan lockForUpdate untuk mencegah race condition
+                $product = Product::lockForUpdate()->find($detail->produk_id);
+                if ($product) {
+                    $product->stok += $detail->jumlah;
+                    $product->save();
+                }
+            }
+
+            // 4. Ubah Status Pesanan
+            $transaksi->status = 'Dibatalkan';
+            $transaksi->save();
+
+            DB::commit(); // Simpan semua perubahan jika sukses
+
+            return redirect()->back()->with('success', 'Pesanan #' . $transaksi->id . ' berhasil dibatalkan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack(); // Batalkan semua jika ada error
+            return redirect()->back()->with('error', 'Gagal membatalkan pesanan. Silakan coba lagi.');
+        }
     }
 }

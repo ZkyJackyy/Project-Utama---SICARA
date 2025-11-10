@@ -63,6 +63,13 @@
                     
                     <div class="border-t border-gray-200 my-6"></div>
 
+                    @if (session('error'))
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <strong class="font-bold">Oops!</strong>
+                            <span class="block sm:inline">{{ session('error') }}</span>
+                        </div>
+                    @endif
+
                     {{-- 4. Blok Aksi Utama (CTA) --}}
                     <form action="{{ route('keranjang.tambah', $product->id) }}" method="POST">
     @csrf
@@ -81,10 +88,10 @@
             Tambah ke Keranjang
         </button>
 
-        <a href="{{ route('checkout') }}" 
-        class="block w-full bg-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-pink-700 transition-colors duration-300 text-center">
+        <button type="submit" name="action" value="buy_now" 
+            class="w-full bg-pink-600 text-white ...">
             Beli Sekarang
-        </a>
+        </button>
     </div>
 </form>
 
