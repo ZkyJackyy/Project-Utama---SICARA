@@ -114,7 +114,7 @@
 
 
     {{-- MAIN --}}
-    <main class="pt-24">
+    <main class="pt-20">
         @yield('content')
     </main>
 

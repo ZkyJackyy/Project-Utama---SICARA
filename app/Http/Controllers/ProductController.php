@@ -132,7 +132,8 @@ class ProductController extends Controller
 
     public function indexHome()
     {
-        $products = Product::latest()->take(4)->get();
+        $products = Product::where('stok', '>', 0)->where('id', '!=', 23)->latest()->take(4)->get();
+        
         return view('dashboard', compact('products'));
     }
 
@@ -140,7 +141,7 @@ class ProductController extends Controller
     {
         // Ambil semua produk, urutkan dari yang terbaru, dan gunakan paginasi
         // Paginate(8) berarti 8 produk per halaman
-        $products = Product::latest()->paginate(8);
+        $products = Product::where('stok', '>', 0)->where('id', '!=', 23)->latest()->paginate(8);
         $categories = Jenis::all();
 
         // Kirim data products ke view

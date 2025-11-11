@@ -61,6 +61,10 @@
                     {{ Str::limit($produk->deskripsi, 70) }}
                 </p>
 
+                <p class="text-gray-600 text-sm mb-6 leading-relaxed">
+                    {{ Str::limit($produk->stok) }}
+                </p>
+
                 {{-- Harga + Button --}}
                 <div class="flex items-center justify-between pt-2">
                     <p class="text-[#700207] font-bold text-xl">

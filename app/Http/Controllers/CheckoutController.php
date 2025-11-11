@@ -70,7 +70,7 @@ class CheckoutController extends Controller
             }
 
             $status = ($request->metode_pembayaran == 'cod') 
-                        ? 'Akan Diproses' 
+                        ? 'Menunggu Konfirmasi' 
                         : 'Menunggu Konfirmasi';
 
             // Simpan transaksi utama
