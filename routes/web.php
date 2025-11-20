@@ -10,6 +10,8 @@ use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PesananController;
 use App\Http\Controllers\CustomCakeController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\UlasanController;
 
 // ================== HOME (Customer) ==================
 Route::get('/', [ProductController::class, 'indexHome'])->name('dashboard');
@@ -108,6 +110,12 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::post('/custom-cake/store', [CustomCakeController::class, 'store'])->name('custom-cake.store');
+
+Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+
+Route::post('/pesanan/{id}/ulasan', [UlasanController::class, 'store'])
+    ->name('customer.ulasan.store');
+
 
 
 
