@@ -27,6 +27,11 @@ class Product extends Model
         return $this->belongsTo(Jenis::class);
     }
 
+    public function keranjangs()
+    {
+        return $this->hasMany(Keranjang::class);
+    }
+
 //     protected $casts = [
 //     'gambar' => 'array',
 // ];

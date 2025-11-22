@@ -2,165 +2,96 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Keranjang;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class KeranjangController extends Controller
 {
     // 🛒 Menampilkan isi keranjang
     public function index()
-     {
-          $cart = session()->get('cart', []);
-          $total = collect($cart)->sum(function ($item) {
-               return $item['harga'] * $item['jumlah'];
-          });
+    {
+        $userId = Auth::id();
+        
+        // Ambil data keranjang milik user dari database
+        $cartItems = Keranjang::where('user_id', $userId)->with('product')->get();
 
-          // Cek ulang stok saat melihat keranjang
-          $stok_berubah = false;
-          foreach ($cart as $id => $item) {
-               
-               // === TAMBAHAN UNTUK FIX BUG ===
-               // Jika ini adalah produk kustom, lewati pengecekan stok
-               if (isset($item['produk_id_dasar'])) {
-                    continue; // Lanjut ke item berikutnya
-               }
-               // === AKHIR TAMBAHAN ===
+        // Hitung Total
+        $total = $cartItems->sum(function ($item) {
+            return $item->product->harga * $item->jumlah;
+        });
 
-               $product = Product::find($id); // Ini sekarang aman
-               if (!$product) {
-                    unset($cart[$id]); 
-                    $stok_berubah = true;
-               } elseif ($item['jumlah'] > $product->stok) {
-                    $cart[$id]['jumlah'] = $product->stok; // Set ke stok maks
-                    $stok_berubah = true;
-               }
-          }
+        // Validasi Stok Otomatis (Hapus item jika produk dihapus admin / stok habis)
+        foreach ($cartItems as $item) {
+            if (!$item->product) {
+                $item->delete(); // Hapus jika produk induk hilang
+                return redirect()->route('keranjang.index')->with('warning', 'Produk tidak tersedia dan dihapus.');
+            }
+            // Cek stok (kecuali custom cake yg diasumsikan stoknya selalu ada/banyak)
+            if ($item->custom_deskripsi == null && $item->jumlah > $item->product->stok) {
+                $item->jumlah = $item->product->stok;
+                $item->save();
+                return redirect()->route('keranjang.index')->with('warning', 'Jumlah disesuaikan dengan stok tersedia.');
+            }
+        }
 
-          if ($stok_berubah) {
-               session()->put('cart', $cart);
-               // Hitung ulang total jika ada perubahan
-               $total = collect($cart)->sum(fn($item) => $item['harga'] * $item['jumlah']);
-               return view('customer.pages.keranjang', compact('cart', 'total'))->with('warning', 'Stok beberapa produk telah disesuaikan.');
-          }
+        return view('customer.pages.keranjang', compact('cartItems', 'total'));
+    }
 
-          return view('customer.pages.keranjang', compact('cart', 'total'));
-     }
-
-    // ➕ Tambah produk ke keranjang (DENGAN VALIDASI STOK)
+    // ➕ Tambah Produk Biasa
     public function tambah(Request $request, $id)
     {
         $product = Product::findOrFail($id);
-        $jumlah_baru = max(1, (int) $request->jumlah);
-        $action = $request->input('action');
-        $cart = session()->get('cart', []);
+        $jumlah = max(1, (int) $request->jumlah);
+        $userId = Auth::id();
 
-        // Tentukan jumlah yang ada di keranjang sebelumnya
-        $jumlah_di_keranjang = 0;
-        if ($action == 'add_to_cart' && isset($cart[$id])) {
-            $jumlah_di_keranjang = $cart[$id]['jumlah'];
+        // Cek Stok
+        if ($jumlah > $product->stok) {
+            return back()->with('error', 'Stok tidak mencukupi.');
         }
 
-        // Jika 'Beli Sekarang', keranjang direset
-        if ($action == 'buy_now') {
-            session()->forget('cart');
-            $cart = [];
-            $jumlah_di_keranjang = 0;
+        // Cek apakah produk sudah ada di keranjang user ini
+        $existingItem = Keranjang::where('user_id', $userId)
+                                 ->where('product_id', $id)
+                                 ->whereNull('custom_deskripsi') // Pastikan bukan produk custom
+                                 ->first();
+
+        if ($existingItem) {
+            // Jika ada, update jumlahnya
+            if (($existingItem->jumlah + $jumlah) > $product->stok) {
+                return back()->with('error', 'Stok tidak cukup untuk menambah lagi.');
+            }
+            $existingItem->jumlah += $jumlah;
+            $existingItem->save();
+        } else {
+            // Jika belum ada, buat baru
+            Keranjang::create([
+                'user_id' => $userId,
+                'product_id' => $id,
+                'jumlah' => $jumlah
+            ]);
         }
 
-        // Hitung total yang diminta
-        $total_diminta = $jumlah_di_keranjang + $jumlah_baru;
-
-        // --- 🔒 VALIDASI STOK ---
-        if ($total_diminta > $product->stok) {
-            return redirect()->back()
-                ->with('error', 'Stok tidak mencukupi! Sisa stok untuk ' . $product->nama_produk . ' hanya ' . $product->stok . ' unit.')
-                ->withInput();
-        }
-        // --- AKHIR VALIDASI ---
-
-        // Lolos validasi, tambahkan ke keranjang
-        $cart[$id] = [
-            'id' => $product->id,
-            'nama_produk' => $product->nama_produk,
-            'harga' => $product->harga,
-            'image_url' => $product->gambar ? asset('storage/produk/' . $product->gambar) : '/images/default.jpg',
-            'jumlah' => $total_diminta, // Set jumlah total yang sudah divalidasi
-        ];
-
-        session()->put('cart', $cart);
-
-        // Redirect berdasarkan aksi
-        if ($action == 'buy_now') {
+        if ($request->action == 'buy_now') {
             return redirect()->route('checkout');
         }
 
-        return redirect()->route('keranjang.index')->with('success', 'Produk berhasil ditambahkan ke keranjang!');
+        return redirect()->route('keranjang.index')->with('success', 'Produk masuk keranjang!');
     }
 
-
-    // 🔄 Update jumlah produk (DENGAN VALIDASI STOK)
-    public function update(Request $request, $id)
-    {
-        $cart = session()->get('cart', []);
-        $jumlah_diminta = (int) $request->jumlah;
-
-        // Validasi minimal 1
-        if ($jumlah_diminta < 1) {
-            return redirect()->route('keranjang.index')->with('error', 'Jumlah minimal adalah 1.');
-        }
-
-        // Cek produk dan stoknya
-        $product = Product::find($id);
-
-        if (isset($cart[$id]) && $product) {
-            
-            // --- 🔒 VALIDASI STOK ---
-            if ($jumlah_diminta > $product->stok) {
-                // Jangan perbarui, kembalikan dengan pesan error
-                return redirect()->back()
-                    ->with('error', 'Stok tidak mencukupi! Sisa stok untuk ' . $product->nama_produk . ' hanya ' . $product->stok . ' unit.');
-            }
-            // --- AKHIR VALIDASI ---
-
-            // Lolos validasi, update keranjang
-            $cart[$id]['jumlah'] = $jumlah_diminta;
-            session()->put('cart', $cart);
-            return redirect()->route('keranjang.index')->with('success', 'Jumlah produk diperbarui.');
-
-        } elseif (!$product) {
-            // Jika produk tiba-tiba dihapus oleh admin
-            unset($cart[$id]);
-            session()->put('cart', $cart);
-            return redirect()->route('keranjang.index')->with('error', 'Produk tidak lagi tersedia dan telah dihapus dari keranjang.');
-        }
-
-        return redirect()->route('keranjang.index');
-    }
-
-    // ❌ Hapus item dari keranjang
-    public function hapus($id)
-    {
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
-            session()->put('cart', $cart);
-        }
-
-        return redirect()->route('keranjang.index')->with('success', 'Produk dihapus dari keranjang.');
-    }
-
-
+    // 🍰 Tambah Produk Custom
     public function tambahCustom(Request $request)
     {
-        $cart = session()->get('cart', []);
-        
-        // Buat ID unik untuk item keranjang kustom ini
-        $customId = 'custom_' . time(); 
-        
-        // Kumpulkan semua deskripsi
+        $idProdukDasar = 23; // ID Kue Kustom Anda
+        $baseProduct = Product::find($idProdukDasar);
+
+        if (!$baseProduct) {
+             return back()->with('error', 'Produk dasar tidak ditemukan.');
+        }
+
+        // Buat Deskripsi
         $deskripsi = "Ukuran: " . $request->ukuran . ", Rasa: " . $request->rasa;
-        
         if ($request->has('toppings')) {
             $deskripsi .= ", Topping: " . implode(', ', $request->toppings);
         }
@@ -168,23 +99,68 @@ class KeranjangController extends Controller
             $deskripsi .= ", Tulisan: '" . $request->tulisan . "'";
         }
 
-        // Ambil gambar dari produk dasar (ID 50)
-        // GANTI 50 DENGAN ID PRODUK "Kue Kustom" ANDA
-        $baseProduct = Product::find(23);
-        $imageUrl = $baseProduct ? asset('storage/produk/' . $baseProduct->gambar) : '/images/default.jpg';
-
-        $cart[$customId] = [
-            'id' => $customId, // Gunakan ID unik
-            'produk_id_dasar' => $baseProduct->id, // Simpan ID produk asli
-            'nama_produk' => 'Kue Kustom (' . $request->ukuran . ')',
-            'harga' => $request->final_price, // Ambil harga final dari form
+        // Simpan ke Database
+        // Untuk custom, kita selalu buat baris baru (Create) jangan di-merge
+        Keranjang::create([
+            'user_id' => Auth::id(),
+            'product_id' => $idProdukDasar,
             'jumlah' => 1,
-            'image_url' => $imageUrl,
-            'custom_deskripsi' => $deskripsi // Simpan deskripsi kustom
-        ];
-        
-        session()->put('cart', $cart);
+            'custom_deskripsi' => $deskripsi
+        ]);
 
-        return redirect()->route('keranjang.index')->with('success', 'Kue kustom berhasil ditambahkan ke keranjang!');
+        return redirect()->route('keranjang.index')->with('success', 'Kue kustom berhasil ditambahkan!');
+    }
+
+    // 🔄 Update Jumlah (AJAX Support)
+    public function update(Request $request, $id)
+    {
+        // Cari item berdasarkan ID tabel keranjang
+        $cartItem = Keranjang::where('user_id', Auth::id())->where('id', $id)->first();
+
+        if (!$cartItem) {
+            return response()->json(['status' => 'error', 'message' => 'Item tidak ditemukan'], 404);
+        }
+
+        $jumlah_baru = (int) $request->jumlah;
+
+        // Validasi Stok (Jika bukan custom)
+        if ($cartItem->custom_deskripsi == null) {
+            if ($jumlah_baru > $cartItem->product->stok) {
+                return response()->json(['status' => 'error', 'message' => 'Stok mentok!'], 400);
+            }
+        }
+
+        $cartItem->jumlah = $jumlah_baru;
+        $cartItem->save();
+
+        // Hitung Total Baru untuk respon AJAX
+        $allCart = Keranjang::where('user_id', Auth::id())->with('product')->get();
+        $newTotal = $allCart->sum(fn($item) => $item->product->harga * $item->jumlah);
+
+        return response()->json([
+            'status' => 'success',
+            'formatted_total' => number_format($newTotal, 0, ',', '.')
+        ]);
+    }
+
+    // ❌ Hapus Item (AJAX Support)
+    public function hapus(Request $request, $id)
+    {
+        $cartItem = Keranjang::where('user_id', Auth::id())->where('id', $id)->first();
+        
+        if ($cartItem) {
+            $cartItem->delete();
+        }
+
+        // Hitung ulang total
+        $allCart = Keranjang::where('user_id', Auth::id())->with('product')->get();
+        $newTotal = $allCart->sum(fn($item) => $item->product->harga * $item->jumlah);
+        $count = $allCart->count();
+
+        return response()->json([
+            'status' => 'success',
+            'formatted_total' => number_format($newTotal, 0, ',', '.'),
+            'cart_count' => $count
+        ]);
     }
 }
