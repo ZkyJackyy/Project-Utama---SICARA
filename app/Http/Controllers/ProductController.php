@@ -175,16 +175,16 @@ class ProductController extends Controller
 
 
     public function showCustomCakeForm()
-{
-    // GANTI 50 DENGAN ID PRODUK "Kue Kustom" ANDA DARI LANGKAH 1
-    $product = Product::find(23); 
+    {
+        // GANTI 50 DENGAN ID PRODUK "Kue Kustom" ANDA DARI LANGKAH 1
+        $product = Product::find(23); 
 
-    if (!$product) {
-        // Jika produk "Kue Kustom" tidak ditemukan
-        return redirect()->route('customer.produk.list')->with('error', 'Halaman kustomisasi tidak tersedia.');
+        if (!$product) {
+            // Jika produk "Kue Kustom" tidak ditemukan
+            return redirect()->route('customer.produk.list')->with('error', 'Halaman kustomisasi tidak tersedia.');
+        }
+        
+        // Kirim data produk (untuk harga dasar) ke view
+        return view('customer.produk.custom', compact('product'));
     }
-    
-    // Kirim data produk (untuk harga dasar) ke view
-    return view('customer.produk.custom', compact('product'));
-}
 }

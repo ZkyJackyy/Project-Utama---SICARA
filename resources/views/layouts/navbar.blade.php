@@ -68,14 +68,14 @@
                 <span class="text-brandRed font-serif text-2xl font-semibold tracking-wide">DaraCake</span>
             </a>
 
-            {{-- Menu Desktop --}}
+            {{-- Menu Desktop (Hidden di HP) --}}
             <ul class="hidden md:flex items-center space-x-10 text-brandDark font-medium">
                 <li><a href="/" class="nav-link {{ request()->is('/') ? 'active' : '' }}">Home</a></li>
                 <li><a href="{{ route('customer.produk.list') }}" class="nav-link {{ request()->is('produk*') ? 'active' : '' }}">Shop</a></li>
-                <li><a href="{{ route('custom-cake.index') }}" class="nav-link">Custome Cake</a></li>
+                <li><a href="{{ route('custom-cake.index') }}" class="nav-link">Custom Cake</a></li>
             </ul>
 
-            {{-- User + Cart + Mobile --}}
+            {{-- User + Cart + Mobile Button --}}
             <div class="flex items-center gap-4 text-xl text-brandRed">
 
                 @auth
@@ -85,17 +85,13 @@
                             <span class="text-sm hidden sm:inline">{{ Auth::user()->name }}</span>
                         </button>
                         <div id="userDropdownMenu" class="hidden absolute right-0 mt-3 w-40 bg-white text-brandDark border border-gray-200 rounded-lg shadow-lg py-2 text-sm">
-    <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
-
-    <!-- Tambahkan ini -->
-    <a href="{{ route('customer.pesanan.index') }}" class="block px-4 py-2 hover:bg-gray-100">Pesanan Saya</a>
-
-    <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
-    </form>
-</div>
-
+                            <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
+                            <a href="{{ route('customer.pesanan.index') }}" class="block px-4 py-2 hover:bg-gray-100">Pesanan Saya</a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
+                            </form>
+                        </div>
                     </div>
                 @else
                     <a href="{{ route('login') }}" class="hover:opacity-80"><i class="fa fa-user"></i></a>
@@ -105,10 +101,20 @@
                     <i class="fa fa-shopping-cart"></i>
                 </a>
 
-                <button id="mobileMenuBtn" class="md:hidden">
-                    <i class="fa fa-bars"></i>
+                {{-- Tombol Hamburger (Hanya di HP) --}}
+                <button id="mobileMenuBtn" class="md:hidden hover:opacity-80 focus:outline-none">
+                    <i class="fa fa-bars text-2xl"></i>
                 </button>
             </div>
+        </div>
+
+        {{-- MENU MOBILE (Tambahan Baru: Awalnya Hidden) --}}
+        <div id="mobileMenu" class="hidden md:hidden bg-brandCream border-t border-gray-200 shadow-lg absolute w-full left-0 top-full">
+            <ul class="flex flex-col p-4 space-y-4 font-medium text-brandDark">
+                <li><a href="/" class="block hover:text-brandRed">Home</a></li>
+                <li><a href="{{ route('customer.produk.list') }}" class="block hover:text-brandRed">Shop</a></li>
+                <li><a href="{{ route('custom-cake.index') }}" class="block hover:text-brandRed">Custom Cake</a></li>
+            </ul>
         </div>
     </nav>
 
@@ -120,8 +126,8 @@
 
 
     {{-- Floating WhatsApp --}}
-    <a href="https://wa.me/62895611194900?text=Halo,%20saya%20ingin%20memesan%20produk%20Anda.%20Apakah%20produk%20Anda%20tersedia."
-       class="fixed w-14 h-14 bottom-6 right-6 bg-green-500 text-white rounded-full grid place-items-center text-3xl shadow-xl hover:scale-110 transition"
+    <a href="https://wa.me/62895611194900?text=Halo,%20saya%20ingin%20memesan%20produk%20Anda."
+       class="fixed w-14 h-14 bottom-6 right-6 bg-green-500 text-white rounded-full grid place-items-center text-3xl shadow-xl hover:scale-110 transition z-50"
        target="_blank">
        <i class="fab fa-whatsapp"></i>
     </a>
@@ -129,8 +135,38 @@
 
     {{-- Script --}}
     <script>
-        document.getElementById('userDropdownBtn')?.addEventListener('click', () => {
-            document.getElementById('userDropdownMenu').classList.toggle('hidden');
+        // Logic Dropdown User
+        const userBtn = document.getElementById('userDropdownBtn');
+        const userMenu = document.getElementById('userDropdownMenu');
+        
+        if(userBtn){
+            userBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Mencegah event click tembus ke document
+                userMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Logic Mobile Menu (Hamburger)
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        if(mobileBtn){
+            mobileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Klik di luar menu untuk menutup menu
+        document.addEventListener('click', (e) => {
+            // Tutup user menu jika klik di luar
+            if(userBtn && !userBtn.contains(e.target) && !userMenu.contains(e.target)){
+                userMenu.classList.add('hidden');
+            }
+            // Tutup mobile menu jika klik di luar
+            if(mobileBtn && !mobileBtn.contains(e.target) && !mobileMenu.contains(e.target)){
+                mobileMenu.classList.add('hidden');
+            }
         });
     </script>
 

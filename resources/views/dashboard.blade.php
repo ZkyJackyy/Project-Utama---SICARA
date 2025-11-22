@@ -37,48 +37,64 @@
         </p>
 
         {{-- Grid Produk --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
 
             @forelse($products ?? [] as $produk)
             <a href="{{ route('customer.produk.detail', $produk->id) }}"
-               class="block bg-white rounded-3xl shadow-lg hover:shadow-2xl hover:-translate-y-1 
-                      transition-all duration-300 p-6 group">
+               class="bg-white rounded-3xl shadow-lg hover:shadow-2xl hover:-translate-y-2 
+                      transition-all duration-300 p-5 group flex flex-col h-full">
 
-                {{-- Gambar --}}
-                <div class="overflow-hidden rounded-2xl mb-6">
+                {{-- Gambar (Aspect Ratio Fixed) --}}
+                <div class="relative w-full h-64 overflow-hidden rounded-2xl mb-5">
                     <img src="{{ asset('storage/produk/' . $produk->gambar) }}" 
-                        alt="{{ $produk->nama_produk }}"
-                        class="w-full h-60 object-cover rounded-2xl transform group-hover:scale-110 duration-500">
+                         alt="{{ $produk->nama_produk }}"
+                         class="w-full h-full object-cover transform group-hover:scale-110 duration-500">
+                    
+                    {{-- Badge Stok (Overlay di gambar pojok kiri atas) --}}
+                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm flex items-center gap-2">
+                        <i class="fas fa-box-open text-[#700207] text-xs"></i>
+                        <span class="text-xs font-semibold text-gray-800">Stok: {{ $produk->stok }}</span>
+                    </div>
                 </div>
 
-                {{-- Nama --}}
-                <h3 class="text-2xl font-['Playfair_Display'] font-semibold text-[#700207] mb-2 group-hover:text-[#b1354a] transition">
-                    {{ $produk->nama_produk }}
-                </h3>
+                {{-- Konten Produk --}}
+                <div class="flex flex-col flex-grow text-left px-2">
+                    
+                    {{-- Nama --}}
+                    <h3 class="text-xl font-['Playfair_Display'] font-bold text-[#700207] mb-1 group-hover:text-[#b1354a] transition line-clamp-2">
+                        {{ $produk->nama_produk }}
+                    </h3>
 
-                {{-- Deskripsi --}}
-                <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-                    {{ Str::limit($produk->deskripsi, 70) }}
-                </p>
+                    {{-- Spacer agar harga selalu di bawah --}}
+                    <div class="flex-grow"></div>
 
-                <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-                    {{ Str::limit($produk->stok) }}
-                </p>
+                    {{-- Garis Pemisah Tipis --}}
+                    <div class="w-full h-px bg-gray-100 my-4"></div>
 
-                {{-- Harga + Button --}}
-                <div class="flex items-center justify-between pt-2">
-                    <p class="text-[#700207] font-bold text-xl">
-                        Rp {{ number_format($produk->harga, 0, ',', '.') }}
-                    </p>
+                    {{-- Harga + Tombol Kecil --}}
+                    <div class="flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-400 font-medium">Harga</span>
+                            <p class="text-[#700207] font-bold text-xl">
+                                Rp {{ number_format($produk->harga, 0, ',', '.') }}
+                            </p>
+                        </div>
 
-                    <span class="bg-[#700207] hover:bg-[#4a0105] text-white px-5 py-2 rounded-full text-sm font-medium transition">
-                        Lihat Detail
-                    </span>
+                        {{-- Tombol Panah Bulat --}}
+                        <div class="w-10 h-10 rounded-full bg-[#F2D9D9] text-[#700207] flex items-center justify-center group-hover:bg-[#700207] group-hover:text-white transition-colors duration-300 shadow-sm">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
                 </div>
 
             </a>
             @empty
-            <p class="col-span-3 text-gray-500 text-lg py-10">Belum ada produk tersedia.</p>
+            <div class="col-span-1 md:col-span-3 py-12">
+                <div class="flex flex-col items-center justify-center text-gray-400">
+                    <i class="fas fa-cookie-bite text-6xl mb-4 opacity-50"></i>
+                    <p class="text-lg font-medium">Belum ada produk tersedia saat ini.</p>
+                </div>
+            </div>
             @endforelse
 
         </div>
@@ -117,7 +133,7 @@
                 Dari <em>cupcake</em> lucu sampai <em>wedding cake</em> elegan, semuanya dibuat secara personal, karena setiap momen manis layak dirayakan sepenuh hati.
             </p>
 
-            <a href="#produk" 
+            <a href="/products" 
                class="inline-block bg-[#ECCFC3] text-[#700207] hover:bg-white font-semibold px-6 py-3 rounded-full shadow-lg transform hover:scale-105 transition">
                 Lihat Produk Kami
             </a>
@@ -174,12 +190,12 @@
         {{-- Address --}}
         <div>
             <h4 class="text-2xl font-['Playfair_Display'] font-bold mb-4 text-[#700207]">Alamat Kami</h4>
-            <p class="text-rose-700 text-sm leading-relaxed">Jl. Manis No. 45, Jakarta Selatan</p>
-            <p class="text-rose-700 text-sm mt-2">Telp: (021) 555-7788</p>
+            <p class="text-rose-700 text-sm leading-relaxed">Jl. Jambak Indah No 42 Rimbo Data, Kel. Bandar Buat, Kec. Lubuk Kilangan, Kota Padang</p>
+            <p class="text-rose-700 text-sm mt-2">Telp: 081268879898</p>
 
             <div class="flex gap-4 mt-6">
                 @foreach([
-                    ['fab fa-instagram', '#'],
+                    ['fab fa-instagram', 'https://www.instagram.com/daracake80?igsh=ZmRqc2kzY2M5dnFn'],
                     ['fab fa-facebook', '#'],
                     ['fab fa-twitter', '#'],
                 ] as [$icon, $url])
