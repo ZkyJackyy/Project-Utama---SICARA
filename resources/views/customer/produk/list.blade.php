@@ -4,36 +4,36 @@
 @section('content')
 
 {{-- HERO SECTION --}}
-<section class="relative py-32 font-['Poppins'] text-white text-center bg-cover bg-center bg-no-repeat" 
+{{-- Perubahan: Mengurangi py-32 menjadi py-20 di mobile, py-32 di md ke atas --}}
+<section class="relative py-20 md:py-32 font-['Poppins'] text-white text-center bg-cover bg-center bg-no-repeat" 
     style="background-image: url('{{ asset('gambar/77.jpg') }}');">
 
-    <!-- Overlay Gelap -->
     <div class="absolute inset-0 bg-black/40"></div>
 
-    <div class="relative z-10 max-w-4xl mx-auto px-6">
-        <h1 class="text-5xl md:text-6xl font-['Playfair_Display'] font-extrabold tracking-wide">
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
+        {{-- Perubahan: Ukuran font responsif (text-4xl di mobile) --}}
+        <h1 class="text-4xl md:text-6xl font-['Playfair_Display'] font-extrabold tracking-wide">
             Shop
         </h1>
-        <p class="mt-4 text-[#F8EAEA] text-lg md:text-xl leading-relaxed">
+        <p class="mt-3 md:mt-4 text-[#F8EAEA] text-base md:text-xl leading-relaxed max-w-xl mx-auto">
             Temukan berbagai pilihan kue terbaik kami yang dibuat dengan bahan berkualitas dan penuh rasa.
         </p>
     </div>
 </section>
 
-
-
 {{-- CONTENT CONTAINER --}}
-<div class="bg-[#ECE6DA] min-h-screen py-24 px-6 sm:px-10 lg:px-16">
+{{-- Perubahan: Padding container dikurangi di mobile --}}
+<div class="bg-[#ECE6DA] min-h-screen py-10 px-4 sm:py-16 sm:px-8 lg:px-16">
 
     {{-- FILTER & SEARCH --}}
-    <div class="max-w-6xl mx-auto mb-14">
-        <div class="flex flex-col lg:flex-row gap-5 items-center justify-between bg-[#ECE6DA] p-6 rounded-2xl shadow-sm border border-[#79533E]">
+    <div class="max-w-6xl mx-auto mb-8 md:mb-14">
+        <div class="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#ECE6DA] md:bg-transparent lg:bg-[#ECE6DA] lg:p-6 rounded-2xl lg:shadow-sm lg:border border-[#79533E] p-0 border-none shadow-none">
 
             {{-- Search --}}
-            <div class="w-full lg:w-1/2">
-                <div class="relative">
+            <div class="w-full md:w-1/2">
+                <div class="relative shadow-sm md:shadow-none rounded-full">
                     <input type="text" id="productSearchInput"
-                        class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#A83F3F] bg-white placeholder-gray-400 transition"
+                        class="w-full pl-12 pr-4 py-3 border border-gray-300 md:border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#A83F3F] bg-white placeholder-gray-400 transition text-sm md:text-base"
                         placeholder="Cari produk kesukaanmu...">
                     
                     <svg class="w-5 h-5 text-gray-500 absolute top-1/2 -translate-y-1/2 left-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,7 +44,7 @@
             </div>
 
             {{-- Dropdown Filter --}}
-            <div class="w-full lg:w-1/2">
+            <div class="w-full md:w-1/2">
                 <div class="relative">
                     <button id="dropdownToggle"
                         class="w-full flex items-center justify-between px-6 py-3 rounded-full border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:border-[#A83F3F] hover:text-[#A83F3F] transition shadow-sm">
@@ -54,10 +54,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2H3V4zm0 6h18v2H3v-2zm0 6h12v2H3v-2z" />
                             </svg>
-                            <span id="selectedFilterText">Semua Kategori</span>
+                            <span id="selectedFilterText" class="truncate">Semua Kategori</span>
                         </div>
 
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M19 9l-7 7-7-7" />
@@ -65,7 +65,7 @@
                     </button>
 
                     <div id="dropdownMenu"
-                        class="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden hidden">
+                        class="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden hidden max-h-60 overflow-y-auto">
                         
                         <button class="filter-btn block w-full text-left px-5 py-2.5 text-sm hover:bg-gray-100 transition" data-filter="all">
                             Semua Kategori
@@ -84,40 +84,47 @@
         </div>
     </div>
 
-
-
     {{-- GRID PRODUK --}}
     @if($products->count() > 0)
-    <div id="productList" class="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-12">
+    {{-- Perubahan: 
+         - grid-cols-1 (mobile) -> 1 kolom agar gambar besar dan jelas
+         - sm:grid-cols-2 (tablet kecil)
+         - lg:grid-cols-4 (desktop)
+         - gap dikurangi menjadi gap-6 di mobile --}}
+    <div id="productList" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
 
         @foreach ($products as $product)
         <a href="{{ route('customer.produk.detail', $product->id) }}"
-           class="product-col bg-white rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-6 group text-center border border-gray-100"
+           class="product-col flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-4 md:p-6 group text-center border border-gray-100"
            data-nama="{{ strtolower($product->nama_produk) }}"
            data-kategori="{{ $product->jenis_id }}">
 
             {{-- Gambar --}}
-            <div class="w-full h-48 flex items-center justify-center overflow-hidden rounded-xl bg-white">
+            <div class="w-full h-56 sm:h-48 flex items-center justify-center overflow-hidden rounded-xl bg-gray-50 relative">
                 <img src="{{ asset('storage/produk/' . $product->gambar) }}"
                      alt="{{ $product->nama_produk }}"
-                     class="h-full w-auto transition-transform duration-500 group-hover:scale-105">
+                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110">
             </div>
 
             {{-- Nama --}}
-            <p class="mt-6 text-base font-semibold text-gray-800 group-hover:text-[#A83F3F] transition">
-                {{ $product->nama_produk }}
-            </p>
+            <div class="flex-grow flex flex-col justify-between pt-4">
+                <div>
+                    <p class="text-base font-bold text-gray-800 group-hover:text-[#A83F3F] transition line-clamp-2">
+                        {{ $product->nama_produk }}
+                    </p>
+                    
+                    {{-- Harga --}}
+                    <p class="text-[#A83F3F] font-bold text-lg mt-1">
+                        Rp {{ number_format($product->harga, 0, ',', '.') }}
+                    </p>
+                </div>
 
-            {{-- Harga --}}
-            <p class="text-[#A83F3F] font-bold text-lg mt-2">
-                Rp {{ number_format($product->harga, 0, ',', '.') }}
-            </p>
-
-            {{-- Plus --}}
-            <div class="mt-6 flex justify-center">
-                <div class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 
-                            hover:bg-[#A83F3F] hover:text-white transition text-lg">
-                    +
+                {{-- Plus Button --}}
+                <div class="mt-4 flex justify-center">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 
+                                bg-gray-50 text-gray-600 hover:border-[#A83F3F] hover:bg-[#A83F3F] hover:text-white transition text-lg">
+                        +
+                    </div>
                 </div>
             </div>
         </a>
@@ -125,7 +132,7 @@
     </div>
 
     {{-- PAGINATION --}}
-    <div class="mt-16 flex justify-center">
+    <div class="mt-12 md:mt-16 flex justify-center overflow-x-auto px-4">
         {{ $products->links() }}
     </div>
 
@@ -137,9 +144,7 @@
 
 </div>
 
-
-
-{{-- SCRIPT FILTER --}}
+{{-- SCRIPT FILTER (TETAP SAMA) --}}
 <script>
     const searchInput = document.getElementById('productSearchInput');
     const productList = document.querySelectorAll('#productList .product-col');
@@ -151,9 +156,14 @@
         productList.forEach(product => {
             const name = product.dataset.nama;
             const category = product.dataset.kategori;
-            product.style.display =
-                (name.includes(searchTerm) && (activeFilter === 'all' || activeFilter === category))
-                ? '' : 'none';
+            // Di mobile, kita gunakan flex/hidden, di desktop grid item
+            // Namun karena parentnya grid, cukup display none/block (atau remove class)
+            // Untuk amannya kita toggle display style langsung
+            if (name.includes(searchTerm) && (activeFilter === 'all' || activeFilter === category)) {
+                product.style.display = '';
+            } else {
+                product.style.display = 'none';
+            }
         });
     }
 
@@ -167,7 +177,7 @@
     });
 </script>
 
-{{-- SCRIPT DROPDOWN --}}
+{{-- SCRIPT DROPDOWN (TETAP SAMA) --}}
 <script>
     const dropdownToggle = document.getElementById('dropdownToggle');
     const dropdownMenu = document.getElementById('dropdownMenu');
