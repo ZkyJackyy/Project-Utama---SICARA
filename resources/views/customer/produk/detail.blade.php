@@ -101,7 +101,7 @@
                             {{-- Tombol Beli Sekarang (Dibuat style outline agar beda) --}}
                             <button type="submit" name="action" value="buy_now" 
                                     class="w-full bg-transparent border border-[#700207] text-[#700207] font-bold py-3 px-6 rounded-lg hover:bg-red-50 transition-colors duration-300 disabled:bg-gray-400 disabled:text-gray-500 disabled:border-gray-400 flex items-center justify-center" @if($product->stok <= 0) disabled @endif>
-                                Pre-Order
+                                Beli Sekarang
                             </button>
                         </div>
                     </form>

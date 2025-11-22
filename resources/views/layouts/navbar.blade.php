@@ -8,6 +8,10 @@
     {{-- Fonts --}}
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
+    <link rel="icon" href="{{ asset('gambar/5.png') }}" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('gambar/5.png') }}" type="image/png">
+    <link rel="apple-touch-icon" href="{{ asset('gambar/5.png') }}">
+
     {{-- Icons --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
