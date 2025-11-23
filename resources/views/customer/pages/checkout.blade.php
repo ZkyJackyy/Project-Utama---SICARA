@@ -20,6 +20,7 @@
         <form action="{{ route('checkout.proses') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
+            <input type="hidden" name="selected_ids" value="{{ $selectedIdsString }}">
             {{-- GRID LAYOUT --}}
             <div class="flex flex-col lg:flex-row gap-8">
 

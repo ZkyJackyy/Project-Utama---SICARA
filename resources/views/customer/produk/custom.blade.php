@@ -2,124 +2,236 @@
 @section('title', 'Custom Cake | DaraCake')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-[#FFF9F9] to-[#FFEFEF] py-20 px-6 font-['Poppins']">
+<div class="min-h-screen bg-[#FAFAFA] font-['Poppins'] pb-20">
 
-    {{-- JUDUL & DESKRIPSI --}}
-    <div class="text-center mb-10">
-        <h1 class="text-5xl font-extrabold text-[#700207] mb-4">Custom Birthday Cake</h1>
-        <p class="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed mb-8">
-            Wujudkan kue impianmu — pilih desain, rasa, dan tampilan sesuai keinginanmu.  
-            <span class="text-[#700207] font-semibold">DaraCake</span> siap menghadirkan kue istimewa untuk momen spesialmu.
-        </p>
-
-        {{-- TOMBOL PESAN SEKARANG --}}
-        <a href="#form-section"
-           class="inline-block bg-[#700207] text-white font-semibold text-lg py-3 px-8 rounded-full shadow-md hover:bg-[#8a0910] transition duration-300">
-           Pesan Sekarang 
-        </a>
-    </div>
-
-    {{-- FITUR KUSTOM --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-        @php
-            $features = [
-                [
-                    'icon' => 'M12 4v2m0 0v2m0-2h2m-2 0H10m-3 7h10m-9 0v7a2 2 0 002 2h6a2 2 0 002-2v-7H7z',
-                    'title' => 'Kirimkan Foto/Logo',
-                    'desc' => 'Kirimkan foto atau logo melalui WhatsApp untuk kue dengan desain personal dan branding khusus.'
-                ],
-                [
-                    'icon' => 'M20 12H4m16 0v6a2 2 0 01-2 2h-3v-8h5zm-16 0v6a2 2 0 002 2h3v-8H4z',
-                    'title' => 'Sesuaikan Hadiah',
-                    'desc' => 'Pilih ukuran, properti, dan rasa favoritmu. Ciptakan kue dengan gaya eksklusif.'
-                ],
-                [
-                    'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V8H3v11a2 2 0 002 2z',
-                    'title' => 'Rencanakan Kue Anda',
-                    'desc' => 'Pesan minimal 5 hari sebelumnya agar kue siap tepat waktu dan sempurna.'
-                ],
-                [
-                    'icon' => 'M9.75 17L8 21l4-2 4 2-1.75-4M12 3v10m0 0a4 4 0 100-8 4 4 0 000 8z',
-                    'title' => 'Gratis Custom Desain',
-                    'desc' => 'Di DaraCake, kustomisasi kue adalah GRATIS! Bebas berkreasi sesukamu.'
-                ]
-            ];
-        @endphp
-
-        @foreach($features as $f)
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md p-6 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-            <div class="flex justify-center mb-4 text-[#700207]">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $f['icon'] }}" />
-                </svg>
-            </div>
-            <h3 class="font-semibold text-lg text-gray-900 mb-2">{{ $f['title'] }}</h3>
-            <p class="text-sm text-gray-600 leading-relaxed">{{ $f['desc'] }}</p>
+    {{-- HERO HEADER --}}
+    <div class="relative bg-[#700207] text-white py-16 px-6 text-center overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/food.png')]"></div>
+        <div class="relative z-10 max-w-3xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 font-['Playfair_Display']">Design Your Dream Cake</h1>
+            <p class="text-red-100 text-lg">Kreasikan kue ulang tahun impianmu. Pilih rasa, ukuran, dan dekorasi sesuka hati!</p>
         </div>
-        @endforeach
     </div>
 
-    {{-- PEMBATAS DENGAN "FORM" --}}
-    <div class="flex items-center justify-center my-12">
-        <div class="flex-grow border-t border-gray-300"></div>
-        <span class="mx-4 text-gray-700 font-semibold tracking-wide">FORM</span>
-        <div class="flex-grow border-t border-gray-300"></div>
-    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
+        
+        <form method="POST" action="{{ route('keranjang.tambahCustom') }}" enctype="multipart/form-data" id="custom-form">
+            @csrf
+            
+            <div class="flex flex-col lg:flex-row gap-8">
 
-    {{-- FORM KUSTOM CAKE --}}
-    <div id="form-section" class="max-w-4xl mx-auto bg-white p-10 rounded-3xl shadow-2xl border border-[#f5dada] hover:shadow-[#700207]/10 transition">
-        <h2 class="text-2xl font-bold text-center text-[#700207] mb-8">Custom Cake</h2>
+                {{-- KOLOM KIRI: FORM KUSTOMISASI --}}
+                <div class="flex-1 space-y-6">
+                    
+                    {{-- 1. PILIH UKURAN (Card Selection) --}}
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <span class="bg-red-100 text-[#700207] w-8 h-8 flex items-center justify-center rounded-full text-sm">1</span>
+                            Pilih Ukuran Kue
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {{-- Option 1 --}}
+                            <label class="cursor-pointer relative">
+                                <input type="radio" name="ukuran" value="16cm (Mini)" data-price="150000" class="peer sr-only" checked onchange="calculateTotal()">
+                                <div class="p-4 rounded-xl border-2 border-gray-200 hover:border-red-300 peer-checked:border-[#700207] peer-checked:bg-red-50 transition-all text-center">
+                                    <div class="text-3xl mb-2">🎂</div>
+                                    <div class="font-bold text-gray-800">16cm (Mini)</div>
+                                    <div class="text-sm text-gray-500">Start Rp 150rb</div>
+                                </div>
+                                <div class="absolute top-3 right-3 text-[#700207] opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <i class="fa fa-check-circle"></i>
+                                </div>
+                            </label>
 
-        <form method="POST" action="{{ route('custom-cake.store') }}" enctype="multipart/form-data" id="custom-cake-form" class="space-y-6">
-    @csrf
+                            {{-- Option 2 --}}
+                            <label class="cursor-pointer relative">
+                                <input type="radio" name="ukuran" value="20cm (Medium)" data-price="220000" class="peer sr-only" onchange="calculateTotal()">
+                                <div class="p-4 rounded-xl border-2 border-gray-200 hover:border-red-300 peer-checked:border-[#700207] peer-checked:bg-red-50 transition-all text-center">
+                                    <div class="text-3xl mb-2">🍰</div>
+                                    <div class="font-bold text-gray-800">20cm (Medium)</div>
+                                    <div class="text-sm text-gray-500">Start Rp 220rb</div>
+                                </div>
+                                <div class="absolute top-3 right-3 text-[#700207] opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <i class="fa fa-check-circle"></i>
+                                </div>
+                            </label>
 
-    <div>
-        <label class="block text-lg font-semibold text-gray-800 mb-2">Nama Produk</label>
-        <input type="text" name="nama_produk" value="Birthday Cake" readonly
-            class="w-full border-gray-300 rounded-lg bg-gray-100 px-4 py-2 focus:ring-[#700207] focus:border-[#700207]">
-    </div>
+                            {{-- Option 3 --}}
+                            <label class="cursor-pointer relative">
+                                <input type="radio" name="ukuran" value="24cm (Large)" data-price="300000" class="peer sr-only" onchange="calculateTotal()">
+                                <div class="p-4 rounded-xl border-2 border-gray-200 hover:border-red-300 peer-checked:border-[#700207] peer-checked:bg-red-50 transition-all text-center">
+                                    <div class="text-3xl mb-2">🏰</div>
+                                    <div class="font-bold text-gray-800">24cm (Large)</div>
+                                    <div class="text-sm text-gray-500">Start Rp 300rb</div>
+                                </div>
+                                <div class="absolute top-3 right-3 text-[#700207] opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <i class="fa fa-check-circle"></i>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
 
-    <div>
-        <label class="block text-lg font-semibold text-gray-800 mb-2">1. Pilih Ukuran</label>
-        <input type="text" name="ukuran" placeholder="Contoh: 20cm / 24cm / 28cm"
-            class="w-full border-gray-300 rounded-lg px-4 py-2 focus:ring-[#700207] focus:border-[#700207]">
-    </div>
+                    {{-- 2. PILIH RASA (List Selection) --}}
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <span class="bg-red-100 text-[#700207] w-8 h-8 flex items-center justify-center rounded-full text-sm">2</span>
+                            Pilih Base Cake
+                        </h3>
+                        <div class="space-y-3">
+                            @php
+                                $flavors = [
+                                    ['name' => 'Vanilla Cloud', 'price' => 0, 'desc' => 'Lembut & klasik'],
+                                    ['name' => 'Double Chocolate', 'price' => 25000, 'desc' => '+ Rp 25.000'],
+                                    ['name' => 'Red Velvet', 'price' => 35000, 'desc' => '+ Rp 35.000'],
+                                    ['name' => 'Mocha Nougat', 'price' => 30000, 'desc' => '+ Rp 30.000'],
+                                ];
+                            @endphp
+                            @foreach($flavors as $index => $flavor)
+                            <label class="flex items-center justify-between p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition">
+                                <div class="flex items-center gap-3">
+                                    <input type="radio" name="rasa" value="{{ $flavor['name'] }}" data-price="{{ $flavor['price'] }}" class="text-[#700207] focus:ring-[#700207] w-5 h-5" {{ $index == 0 ? 'checked' : '' }} onchange="calculateTotal()">
+                                    <div>
+                                        <p class="font-semibold text-gray-800">{{ $flavor['name'] }}</p>
+                                        <p class="text-xs text-gray-500">{{ $flavor['desc'] }}</p>
+                                    </div>
+                                </div>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
 
-    <div>
-        <label class="block text-lg font-semibold text-gray-800 mb-2">2. Pilih Rasa</label>
-        <input type="text" name="rasa" placeholder="Contoh: Vanilla / Coklat / Red Velvet"
-            class="w-full border-gray-300 rounded-lg px-4 py-2 focus:ring-[#700207] focus:border-[#700207]">
-    </div>
+                    {{-- 3. TOPPING (Checkbox) --}}
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <span class="bg-red-100 text-[#700207] w-8 h-8 flex items-center justify-center rounded-full text-sm">3</span>
+                            Tambah Topping (Opsional)
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            @php
+                                $toppings = [
+                                    ['name' => 'Fresh Fruits', 'price' => 20000],
+                                    ['name' => 'Macarons (3pcs)', 'price' => 35000],
+                                    ['name' => 'Gold Flakes', 'price' => 15000],
+                                    ['name' => 'Choco Drip', 'price' => 10000],
+                                ];
+                            @endphp
+                            @foreach($toppings as $top)
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer has-[:checked]:bg-red-50 has-[:checked]:border-[#700207] transition">
+                                <input type="checkbox" name="toppings[]" value="{{ $top['name'] }}" data-price="{{ $top['price'] }}" class="rounded text-[#700207] focus:ring-[#700207] w-5 h-5 mr-3" onchange="calculateTotal()">
+                                <span class="text-sm font-medium text-gray-700">{{ $top['name'] }} (+{{ number_format($top['price']/1000) }}k)</span>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
 
-    <div>
-        <label class="block text-lg font-semibold text-gray-800 mb-2">3. Pilih Topping</label>
-        <input type="text" name="toppings" placeholder="Contoh: Cherry, Whipped Cream, Sprinkles"
-            class="w-full border-gray-300 rounded-lg px-4 py-2 focus:ring-[#700207] focus:border-[#700207]">
-    </div>
+                    {{-- 4. DETAIL PESAN --}}
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <span class="bg-red-100 text-[#700207] w-8 h-8 flex items-center justify-center rounded-full text-sm">4</span>
+                            Detail Tulisan
+                        </h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Tulisan di atas kue (Maks 30 karakter)</label>
+                            <input type="text" name="tulisan" placeholder="Happy Birthday Sayang..." maxlength="30"
+                                class="w-full border-gray-300 rounded-lg px-4 py-3 focus:ring-[#700207] focus:border-[#700207] transition">
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Catatan Tambahan (Warna krim, jam ambil, dll)</label>
+                            <textarea name="catatan_tambahan" rows="2" placeholder="Contoh: Krim warna pink pastel, lilin angka 2..."
+                                class="w-full border-gray-300 rounded-lg px-4 py-3 focus:ring-[#700207] focus:border-[#700207] transition"></textarea>
+                        </div>
+                    </div>
 
-    <div>
-        <label class="block text-lg font-semibold text-gray-800 mb-2">4. Tulisan di Atas Kue</label>
-        <input type="text" name="tulisan" placeholder="Contoh: Selamat Ulang Tahun, Ayah!"
-            class="w-full border-gray-300 rounded-lg px-4 py-2 focus:ring-[#700207] focus:border-[#700207]">
-    </div>
+                </div>
 
-    <button type="submit"
-        class="w-full bg-[#700207] text-white font-semibold text-lg py-3 rounded-lg hover:bg-[#8a0910] transition duration-300">
-        Kirim ke WhatsApp Admin
-    </button>
-</form>
+                {{-- KOLOM KANAN: SUMMARY (STICKY) --}}
+                <div class="lg:w-1/3">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 sticky top-24">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6 border-b pb-4">Ringkasan Pesanan</h3>
+                        
+                        <div class="space-y-3 text-sm text-gray-600 mb-6">
+                            <div class="flex justify-between">
+                                <span>Base Price (Ukuran)</span>
+                                <span class="font-medium text-gray-900" id="summary-size">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Rasa Tambahan</span>
+                                <span class="font-medium text-gray-900" id="summary-flavor">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Topping</span>
+                                <span class="font-medium text-gray-900" id="summary-topping">Rp 0</span>
+                            </div>
+                        </div>
 
+                        <div class="flex justify-between items-center border-t pt-4 mb-6">
+                            <span class="text-lg font-bold text-gray-900">Total Estimasi</span>
+                            <span class="text-2xl font-bold text-[#700207]" id="display-total">Rp 0</span>
+                        </div>
+
+                        {{-- HIDDEN INPUT UNTUK HARGA FINAL --}}
+                        <input type="hidden" name="final_price" id="final-price-input" value="0">
+
+                        <button type="submit" class="w-full bg-[#700207] text-white font-bold py-4 rounded-xl hover:bg-[#8a0910] shadow-lg hover:shadow-xl transform active:scale-95 transition duration-200 flex items-center justify-center gap-2">
+                            <i class="fa fa-cart-plus"></i> Masukkan Keranjang
+                        </button>
+                        
+                        <p class="text-xs text-center text-gray-400 mt-3">
+                            *Harga final, silakan lanjut checkout untuk pembayaran.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </form>
     </div>
 </div>
 
-{{-- SCRIPT SCROLL & WHATSAPP --}}
+{{-- JAVASCRIPT CALCULATOR --}}
 <script>
-// Smooth scroll ke form
-document.querySelector('a[href="#form-section"]').addEventListener('click', function(e) {
-    e.preventDefault();
-    document.querySelector('#form-section').scrollIntoView({ behavior: 'smooth' });
-});
+    function formatRupiah(angka) {
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
+    }
 
+    function calculateTotal() {
+        let total = 0;
+        let sizePrice = 0;
+        let flavorPrice = 0;
+        let toppingPrice = 0;
 
+        // 1. Get Size Price
+        const selectedSize = document.querySelector('input[name="ukuran"]:checked');
+        if (selectedSize) {
+            sizePrice = parseInt(selectedSize.dataset.price);
+        }
+
+        // 2. Get Flavor Price
+        const selectedFlavor = document.querySelector('input[name="rasa"]:checked');
+        if (selectedFlavor) {
+            flavorPrice = parseInt(selectedFlavor.dataset.price);
+        }
+
+        // 3. Get Topping Price
+        const selectedToppings = document.querySelectorAll('input[name="toppings[]"]:checked');
+        selectedToppings.forEach(top => {
+            toppingPrice += parseInt(top.dataset.price);
+        });
+
+        // Calculate
+        total = sizePrice + flavorPrice + toppingPrice;
+
+        // Update UI
+        document.getElementById('summary-size').innerText = formatRupiah(sizePrice);
+        document.getElementById('summary-flavor').innerText = formatRupiah(flavorPrice);
+        document.getElementById('summary-topping').innerText = formatRupiah(toppingPrice);
+        document.getElementById('display-total').innerText = formatRupiah(total);
+
+        // Update Input Hidden
+        document.getElementById('final-price-input').value = total;
+    }
+
+    // Run on load
+    document.addEventListener('DOMContentLoaded', calculateTotal);
 </script>
 @endsection

@@ -32,6 +32,11 @@ class Product extends Model
         return $this->hasMany(Keranjang::class);
     }
 
+    public function detailTransaksi()
+    {
+        return $this->hasMany(DetailTransaksi::class, 'produk_id');
+    }
+
 //     protected $casts = [
 //     'gambar' => 'array',
 // ];

@@ -83,32 +83,43 @@ class KeranjangController extends Controller
     // 🍰 Tambah Produk Custom
     public function tambahCustom(Request $request)
     {
-        $idProdukDasar = 23; // ID Kue Kustom Anda
+        // 1. Validasi
+        $request->validate([
+            'ukuran' => 'required',
+            'rasa' => 'required',
+            'final_price' => 'required|numeric' // Pastikan form custom cake mengirim 'final_price'
+        ]);
+
+        $idProdukDasar = 23; // ID Produk Custom Cake Anda
         $baseProduct = Product::find($idProdukDasar);
 
         if (!$baseProduct) {
              return back()->with('error', 'Produk dasar tidak ditemukan.');
         }
 
-        // Buat Deskripsi
+        // 2. Susun Deskripsi untuk kolom 'custom_deskripsi'
         $deskripsi = "Ukuran: " . $request->ukuran . ", Rasa: " . $request->rasa;
+        
         if ($request->has('toppings')) {
-            $deskripsi .= ", Topping: " . implode(', ', $request->toppings);
+             $toppings = is_array($request->toppings) ? implode(', ', $request->toppings) : $request->toppings;
+             $deskripsi .= ", Topping: " . $toppings;
         }
+        
         if ($request->tulisan) {
             $deskripsi .= ", Tulisan: '" . $request->tulisan . "'";
         }
 
-        // Simpan ke Database
-        // Untuk custom, kita selalu buat baris baru (Create) jangan di-merge
+        // 3. Masukkan ke Database Keranjang
         Keranjang::create([
             'user_id' => Auth::id(),
             'product_id' => $idProdukDasar,
             'jumlah' => 1,
-            'custom_deskripsi' => $deskripsi
+            'custom_deskripsi' => $deskripsi, // Simpan detail di sini
+            'custom_price' => $request->final_price // Simpan harga yang sudah dihitung JS
         ]);
 
-        return redirect()->route('keranjang.index')->with('success', 'Kue kustom berhasil ditambahkan!');
+        // Redirect ke halaman keranjang, BUKAN ke WA
+        return redirect()->route('keranjang.index')->with('success', 'Kue kustom berhasil ditambahkan! Silakan lanjut Checkout.');
     }
 
     // 🔄 Update Jumlah (AJAX Support)

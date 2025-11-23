@@ -14,31 +14,38 @@ class ProductController extends Controller
     //ini
     public function dashboard()
     {
-        // Card 1: Total Penjualan (Hanya menghitung pesanan yang sudah "Selesai")
+        // 1. Total Pendapatan (Hanya yang Selesai - Uang nyata)
         $totalPenjualan = Transaksi::where('status', 'Selesai')->sum('total');
 
-        // Card 2: Pesanan Baru (Pesanan yang perlu diproses admin)
-        $pesananBaru = Transaksi::whereIn('status', ['Menunggu Konfirmasi', 'Akan Diproses'])->count();
+        // 2. Pesanan Baru (URGENT: Status 'Menunggu Konfirmasi')
+        // Logika: Ini adalah angka notifikasi yang membutuhkan tindakan Admin segera.
+        $pesananBaru = Transaksi::where('status', 'Menunggu Konfirmasi')->count();
 
-        // Card 3: Total Stok Produk (Stok dari produk yang 'deleted_at' nya NULL)
-        // Saya asumsikan Anda memiliki kolom 'stok' di tabel 'products'
-        $totalStok = Product::whereNull('deleted_at')->sum('stok');
+        // 3. Pesanan Aktif (Sedang Dapur/Proses)
+        // Logika: Ini pesanan yang sudah oke, tinggal dibuat/dikirim.
+        $pesananDiproses = Transaksi::whereIn('status', ['Akan Diproses', 'Diproses'])->count();
 
-        // Card 4: Produk Terjual (Hanya dari pesanan yang "Selesai")
+        // 4. Total Stok Produk (KECUALI Custom Cake ID 23)
+        // Logika: Custom cake stoknya 999 (dummy), jadi harus dibuang dari hitungan agar data akurat.
+        $totalStok = Product::whereNull('deleted_at')
+                            ->where('id', '!=', 23) // <-- ID Custom Cake dikecualikan
+                            ->sum('stok');
+
+        // 5. Produk Terjual (Hanya dari pesanan Selesai)
         $produkTerjual = DetailTransaksi::whereHas('transaksi', function ($query) {
             $query->where('status', 'Selesai');
         })->sum('jumlah');
 
-        // Tabel: Pesanan Terbaru (Ambil 5 data terbaru)
-        $pesananTerbaru = Transaksi::with('user')
+        // 6. Tabel Pesanan Terbaru (Ambil 5)
+        $pesananTerbaru = Transaksi::with(['user', 'detailTransaksi']) // Eager load untuk performa
             ->orderBy('created_at', 'desc')
-            ->limit(5) // Ambil 5 pesanan paling baru
+            ->limit(5)
             ->get();
 
-        // Kirim semua data ke view
         return view('admin.dashboard', compact(
             'totalPenjualan',
             'pesananBaru',
+            'pesananDiproses',
             'totalStok',
             'produkTerjual',
             'pesananTerbaru'
@@ -132,8 +139,26 @@ class ProductController extends Controller
 
     public function indexHome()
     {
-        $products = Product::where('stok', '>', 0)->where('id', '!=', 23)->latest()->take(4)->get();
-        
+        $idProdukKustom = 23;
+        $products = Product::query()
+            ->where('id', '!=', $idProdukKustom) // 1. Jangan tampilkan kue kustom
+            ->where('stok', '>', 0)              // 2. Pastikan stok ada
+            ->withSum('detailTransaksi as total_terjual', 'jumlah') // 3. Hitung total 'jumlah' dari tabel detail_transaksi
+            ->orderByDesc('total_terjual')       // 4. Urutkan dari yang paling banyak terjual
+            ->take(3)                            // 5. Ambil 3 atau 4 produk teratas
+            ->get();
+
+
+            // Jika data penjualan masih kosong (toko baru), 
+        // fallback ke produk terbaru agar tidak kosong
+        if ($products->isEmpty() || $products->sum('total_terjual') == 0) {
+            $products = Product::where('id', '!=', $idProdukKustom)
+                ->where('stok', '>', 0)
+                ->latest()
+                ->take(3)
+                ->get();
+        }
+
         return view('dashboard', compact('products'));
     }
 
@@ -177,13 +202,13 @@ class ProductController extends Controller
     public function showCustomCakeForm()
     {
         // GANTI 50 DENGAN ID PRODUK "Kue Kustom" ANDA DARI LANGKAH 1
-        $product = Product::find(23); 
+        $product = Product::find(23);
 
         if (!$product) {
             // Jika produk "Kue Kustom" tidak ditemukan
             return redirect()->route('customer.produk.list')->with('error', 'Halaman kustomisasi tidak tersedia.');
         }
-        
+
         // Kirim data produk (untuk harga dasar) ke view
         return view('customer.produk.custom', compact('product'));
     }

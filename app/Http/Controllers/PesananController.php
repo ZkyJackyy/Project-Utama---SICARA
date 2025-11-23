@@ -14,7 +14,11 @@ class PesananController extends Controller
     // ✅ Tampilkan semua pesanan
     public function index()
     {
-        $pesanan = Transaksi::with('user')->orderBy('created_at', 'desc')->get();
+        // Tambahkan 'detailTransaksi.produk' agar kita bisa menampilkan nama produk di tabel
+        $pesanan = Transaksi::with(['user', 'detailTransaksi.produk'])
+                            ->orderBy('created_at', 'desc')
+                            ->paginate(10); // Gunakan paginate agar halaman tidak panjang ke bawah
+
         return view('admin.pesanan.index', compact('pesanan'));
     }
 

@@ -57,6 +57,13 @@
                         <i class="fas fa-box-open text-[#700207] text-xs"></i>
                         <span class="text-xs font-semibold text-gray-800">Stok: {{ $produk->stok }}</span>
                     </div>
+
+                    @if(isset($produk->total_terjual) && $produk->total_terjual > 0)
+                        <div class="absolute top-3 right-3 bg-[#700207] text-white px-3 py-1 rounded-full shadow-sm flex items-center gap-1 z-10">
+                            <i class="fas fa-fire text-xs text-yellow-400"></i>
+                            <span class="text-xs font-semibold">{{ $produk->total_terjual }} Terjual</span>
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Konten Produk --}}
@@ -114,7 +121,7 @@
         <div class="w-full md:w-1/2 flex justify-center">
             {{-- PERBAIKAN UTAMA: Ganti w-80 h-80 (fixed) menjadi responsif --}}
             <div class="relative w-full max-w-[20rem] md:max-w-xs aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-[#ECCFC3] group">
-                <img src="{{ asset('gambar/kue5.png') }}" 
+                <img src="{{ asset('gambar/tokodc.jpg') }}" 
                      alt="Dara Cake Team" 
                      class="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
