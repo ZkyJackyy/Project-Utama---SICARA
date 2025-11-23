@@ -94,15 +94,28 @@
                         <form action="{{ route('customer.ulasan.store', $item->id) }}" method="POST">
                             @csrf
 
+                            {{-- 👇 TAMBAHAN BARU: PILIH PRODUK 👇 --}}
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Produk yang diulas:</label>
+                                <select name="product_id" class="w-full border border-[#5C0A0A]/20 rounded-xl p-2 text-sm focus:ring-2 focus:ring-[#5C0A0A] bg-white" required>
+                                    @foreach($item->detailTransaksi as $detail)
+                                        <option value="{{ $detail->produk_id }}">
+                                            {{ $detail->produk->nama_produk }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            {{-- 👆 AKHIR TAMBAHAN 👆 --}}
+
                             {{-- Rating --}}
                             <div class="flex items-center gap-3 mb-4">
                                 <label class="text-sm text-gray-700">Rating:</label>
 
                                 <div class="flex items-center gap-1 cursor-pointer select-none"
-                                     id="rating-stars-{{ $item->id }}">
+                                    id="rating-stars-{{ $item->id }}">
                                     @for ($i = 1; $i <= 5; $i++)
                                         <span data-value="{{ $i }}"
-                                              class="star-{{ $item->id }} text-3xl text-gray-300 hover:text-yellow-400 transition">
+                                            class="star-{{ $item->id }} text-3xl text-gray-300 hover:text-yellow-400 transition">
                                             ★
                                         </span>
                                     @endfor

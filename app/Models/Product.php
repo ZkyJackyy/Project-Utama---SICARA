@@ -37,6 +37,12 @@ class Product extends Model
         return $this->hasMany(DetailTransaksi::class, 'produk_id');
     }
 
+    public function ulasan()
+{
+    // Asumsi nama model ulasan adalah 'Ulasan'
+    return $this->hasMany(Ulasan::class,'product_id');
+}
+
 //     protected $casts = [
 //     'gambar' => 'array',
 // ];

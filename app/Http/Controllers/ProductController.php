@@ -175,15 +175,24 @@ class ProductController extends Controller
 
     public function showDetail(Product $product)
     {
-        // Logika ini sudah benar dan akan bekerja dengan ID
+        // 1. Eager load ulasan beserta user yang menulisnya agar hemat query
+        // Urutkan dari ulasan terbaru
+        $product->load(['ulasan.user' => function($query) {
+            $query->orderBy('created_at', 'desc');
+        }]);
+
+        // 2. Hitung statistik rating (Opsional, untuk tampilan bintang)
+        $totalUlasan = $product->ulasan->count();
+        $avgRating = $totalUlasan > 0 ? $product->ulasan->avg('rating') : 0;
+
+        // 3. Produk Terkait (Logika lama Anda)
         $relatedProducts = Product::where('jenis_id', $product->jenis_id)
             ->where('id', '!=', $product->id)
             ->latest()
             ->take(4)
             ->get();
 
-        // Pastikan path view Anda benar, contoh: 'customer.detail'
-        return view('customer.produk.detail', compact('product', 'relatedProducts'));
+        return view('customer.produk.detail', compact('product', 'relatedProducts', 'totalUlasan', 'avgRating'));
     }
 
     public function unpublish(Product $product)

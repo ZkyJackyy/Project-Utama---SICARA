@@ -26,6 +26,6 @@ class DetailTransaksi extends Model
     // ✅ Tambahkan ini
     public function produk()
     {
-        return $this->belongsTo(Product::class, 'produk_id');
+        return $this->belongsTo(Product::class, 'produk_id')->withTrashed();
     }
 }
