@@ -62,15 +62,15 @@
        class="flex items-center px-5 py-3 rounded-xl
        {{ request()->is('laporan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
         <i class="fas fa-chart-line w-6"></i>
-        <span class="ml-3 text-lg font-medium">Laporan</span>
+        <span class="ml-3 text-lg font-medium">Laporan Penjualan</span>
     </a>
 
     {{-- Pengaturan --}}
-    <a href="/pengaturan"
+    <a href="/keuangan"
        class="flex items-center px-5 py-3 rounded-xl
        {{ request()->is('pengaturan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
-        <i class="fas fa-cog w-6"></i>
-        <span class="ml-3 text-lg font-medium">Pengaturan</span>
+        <i class="fas fa-chart-line w-6"></i>
+        <span class="ml-3 text-lg font-medium">Laporan Keuangan</span>
     </a>
 </nav>
 

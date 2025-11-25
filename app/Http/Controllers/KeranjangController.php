@@ -51,30 +51,36 @@ class KeranjangController extends Controller
             return back()->with('error', 'Stok tidak mencukupi.');
         }
 
-        // Cek apakah produk sudah ada di keranjang user ini
+        // Cek apakah produk sudah ada
         $existingItem = Keranjang::where('user_id', $userId)
                                  ->where('product_id', $id)
-                                 ->whereNull('custom_deskripsi') // Pastikan bukan produk custom
+                                 ->whereNull('custom_deskripsi')
                                  ->first();
 
+        $cartItem = null; // Variabel untuk menyimpan item yang diproses
+
         if ($existingItem) {
-            // Jika ada, update jumlahnya
+            // Jika sudah ada, update jumlah
             if (($existingItem->jumlah + $jumlah) > $product->stok) {
                 return back()->with('error', 'Stok tidak cukup untuk menambah lagi.');
             }
             $existingItem->jumlah += $jumlah;
             $existingItem->save();
+            
+            $cartItem = $existingItem; // Simpan ke variabel
         } else {
             // Jika belum ada, buat baru
-            Keranjang::create([
+            $cartItem = Keranjang::create([
                 'user_id' => $userId,
                 'product_id' => $id,
                 'jumlah' => $jumlah
             ]);
         }
 
+        // LOGIKA BARU: REDIRECT KE CHECKOUT DENGAN ID
         if ($request->action == 'buy_now') {
-            return redirect()->route('checkout');
+            // Redirect langsung ke checkout dengan membawa ID item ini
+            return redirect()->route('checkout', ['selected_ids' => $cartItem->id]);
         }
 
         return redirect()->route('keranjang.index')->with('success', 'Produk masuk keranjang!');
@@ -83,21 +89,19 @@ class KeranjangController extends Controller
     // 🍰 Tambah Produk Custom
     public function tambahCustom(Request $request)
     {
-        // 1. Validasi
         $request->validate([
             'ukuran' => 'required',
             'rasa' => 'required',
-            'final_price' => 'required|numeric' // Pastikan form custom cake mengirim 'final_price'
+            'final_price' => 'required|numeric'
         ]);
 
-        $idProdukDasar = 23; // ID Produk Custom Cake Anda
+        $idProdukDasar = 23; 
         $baseProduct = Product::find($idProdukDasar);
 
         if (!$baseProduct) {
              return back()->with('error', 'Produk dasar tidak ditemukan.');
         }
 
-        // 2. Susun Deskripsi untuk kolom 'custom_deskripsi'
         $deskripsi = "Ukuran: " . $request->ukuran . ", Rasa: " . $request->rasa;
         
         if ($request->has('toppings')) {
@@ -109,17 +113,17 @@ class KeranjangController extends Controller
             $deskripsi .= ", Tulisan: '" . $request->tulisan . "'";
         }
 
-        // 3. Masukkan ke Database Keranjang
-        Keranjang::create([
+        // Simpan dan tampung hasilnya ke variabel $newItem
+        $newItem = Keranjang::create([
             'user_id' => Auth::id(),
             'product_id' => $idProdukDasar,
             'jumlah' => 1,
-            'custom_deskripsi' => $deskripsi, // Simpan detail di sini
-            'custom_price' => $request->final_price // Simpan harga yang sudah dihitung JS
+            'custom_deskripsi' => $deskripsi,
+            'custom_price' => $request->final_price
         ]);
 
-        // Redirect ke halaman keranjang, BUKAN ke WA
-        return redirect()->route('keranjang.index')->with('success', 'Kue kustom berhasil ditambahkan! Silakan lanjut Checkout.');
+        // LOGIKA BARU: Langsung ke Checkout membawa ID item yang baru dibuat
+        return redirect()->route('checkout', ['selected_ids' => $newItem->id]);
     }
 
     // 🔄 Update Jumlah (AJAX Support)

@@ -174,7 +174,7 @@
                         <input type="hidden" name="final_price" id="final-price-input" value="0">
 
                         <button type="submit" class="w-full bg-[#700207] text-white font-bold py-4 rounded-xl hover:bg-[#8a0910] shadow-lg hover:shadow-xl transform active:scale-95 transition duration-200 flex items-center justify-center gap-2">
-                            <i class="fa fa-cart-plus"></i> Masukkan Keranjang
+                            <i class="fa fa-cart-plus"></i> Pesan Sekarang
                         </button>
                         
                         <p class="text-xs text-center text-gray-400 mt-3">

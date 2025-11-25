@@ -34,6 +34,8 @@ class UserController extends Controller
             ],
             'alamat' => ['nullable', 'string', 'max:500'],
             'no_hp' => ['nullable', 'string', 'max:20'],
+            'latitude' => 'nullable|string',
+            'longitude' => 'nullable|string',
         ]);
 
         // Update data user

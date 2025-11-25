@@ -2,16 +2,17 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\KeranjangController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\PesananController;
-use App\Http\Controllers\CustomCakeController;
-use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\UlasanController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\PesananController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\KeuanganController;
+use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\SocialiteController;
+use App\Http\Controllers\CustomCakeController;
 
 // ================== HOME (Customer) ==================
 Route::get('/', [ProductController::class, 'indexHome'])->name('dashboard');
@@ -44,6 +45,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/pesanan', [App\Http\Controllers\PesananController::class, 'index'])->name('admin.pesanan.index');
     Route::get('/admin/pesanan/{id}', [App\Http\Controllers\PesananController::class, 'show'])->name('admin.pesanan.show');
     Route::put('/admin/pesanan/{id}/status', [App\Http\Controllers\PesananController::class, 'updateStatus'])->name('admin.pesanan.updateStatus');
+
+    Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
+    Route::post('/keuangan', [KeuanganController::class, 'store'])->name('keuangan.store');
 });
 
 
@@ -98,7 +102,8 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout/proses', [CheckoutController::class, 'proses'])->name('checkout.proses');
     
-    Route::get('/custom-cake', [ProductController::class, 'showCustomCakeForm'])->name('custom-cake.index');
+    Route::get('/custom-cake', [CustomCakeController::class, 'showCustomCakeForm'])->name('custom-cake.index');
+    Route::post('/custom-cake/store', [CustomCakeController::class, 'store'])->name('custom-cake.store');
 Route::post('/keranjang/tambah-custom', [KeranjangController::class, 'tambahCustom'])->name('keranjang.tambahCustom');
 });
 
@@ -109,7 +114,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('customer.pesanan.batal');
 });
 
-Route::post('/custom-cake/store', [CustomCakeController::class, 'store'])->name('custom-cake.store');
 
 Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
 
