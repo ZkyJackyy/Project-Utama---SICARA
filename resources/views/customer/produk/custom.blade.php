@@ -32,11 +32,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {{-- Option 1 --}}
                             <label class="cursor-pointer relative">
-                                <input type="radio" name="ukuran" value="16cm (Mini)" data-price="150000" class="peer sr-only" checked onchange="calculateTotal()">
+                                <input type="radio" name="ukuran" value="18cm" data-price="65000" class="peer sr-only" checked onchange="calculateTotal()">
                                 <div class="p-4 rounded-xl border-2 border-gray-200 hover:border-red-300 peer-checked:border-[#700207] peer-checked:bg-red-50 transition-all text-center">
                                     <div class="text-3xl mb-2">🎂</div>
-                                    <div class="font-bold text-gray-800">16cm (Mini)</div>
-                                    <div class="text-sm text-gray-500">Start Rp 150rb</div>
+                                    <div class="font-bold text-gray-800">18cm</div>
+                                    <div class="text-sm text-gray-500">Start Rp 65rb</div>
                                 </div>
                                 <div class="absolute top-3 right-3 text-[#700207] opacity-0 peer-checked:opacity-100 transition-opacity">
                                     <i class="fa fa-check-circle"></i>
@@ -45,11 +45,11 @@
 
                             {{-- Option 2 --}}
                             <label class="cursor-pointer relative">
-                                <input type="radio" name="ukuran" value="20cm (Medium)" data-price="220000" class="peer sr-only" onchange="calculateTotal()">
+                                <input type="radio" name="ukuran" value="20cm" data-price="80000" class="peer sr-only" onchange="calculateTotal()">
                                 <div class="p-4 rounded-xl border-2 border-gray-200 hover:border-red-300 peer-checked:border-[#700207] peer-checked:bg-red-50 transition-all text-center">
                                     <div class="text-3xl mb-2">🍰</div>
-                                    <div class="font-bold text-gray-800">20cm (Medium)</div>
-                                    <div class="text-sm text-gray-500">Start Rp 220rb</div>
+                                    <div class="font-bold text-gray-800">20cm</div>
+                                    <div class="text-sm text-gray-500">Start Rp 80rb</div>
                                 </div>
                                 <div class="absolute top-3 right-3 text-[#700207] opacity-0 peer-checked:opacity-100 transition-opacity">
                                     <i class="fa fa-check-circle"></i>
@@ -57,7 +57,7 @@
                             </label>
 
                             {{-- Option 3 --}}
-                            <label class="cursor-pointer relative">
+                            {{-- <label class="cursor-pointer relative">
                                 <input type="radio" name="ukuran" value="24cm (Large)" data-price="300000" class="peer sr-only" onchange="calculateTotal()">
                                 <div class="p-4 rounded-xl border-2 border-gray-200 hover:border-red-300 peer-checked:border-[#700207] peer-checked:bg-red-50 transition-all text-center">
                                     <div class="text-3xl mb-2">🏰</div>
@@ -67,7 +67,7 @@
                                 <div class="absolute top-3 right-3 text-[#700207] opacity-0 peer-checked:opacity-100 transition-opacity">
                                     <i class="fa fa-check-circle"></i>
                                 </div>
-                            </label>
+                            </label> --}}
                         </div>
                     </div>
 
@@ -81,9 +81,9 @@
                             @php
                                 $flavors = [
                                     ['name' => 'Vanilla Cloud', 'price' => 0, 'desc' => 'Lembut & klasik'],
-                                    ['name' => 'Double Chocolate', 'price' => 25000, 'desc' => '+ Rp 25.000'],
-                                    ['name' => 'Red Velvet', 'price' => 35000, 'desc' => '+ Rp 35.000'],
-                                    ['name' => 'Mocha Nougat', 'price' => 30000, 'desc' => '+ Rp 30.000'],
+                                    ['name' => 'Double Chocolate', 'price' => 0, 'desc' => 'manis & lembut'],
+                                    ['name' => 'Red Velvet', 'price' => 0, 'desc' => 'manis & lembut'],
+                                    ['name' => 'Mocha Nougat', 'price' => 0, 'desc' => 'creamy & manis'],
                                 ];
                             @endphp
                             @foreach($flavors as $index => $flavor)
@@ -109,9 +109,9 @@
                         <div class="grid grid-cols-2 gap-3">
                             @php
                                 $toppings = [
-                                    ['name' => 'Fresh Fruits', 'price' => 20000],
-                                    ['name' => 'Macarons (3pcs)', 'price' => 35000],
-                                    ['name' => 'Gold Flakes', 'price' => 15000],
+                                    ['name' => 'Fresh Fruits', 'price' => 5000],
+                                    ['name' => 'Macarons (3pcs)', 'price' => 5000],
+                                    ['name' => 'Gold Flakes', 'price' => 5000],
                                     ['name' => 'Choco Drip', 'price' => 10000],
                                 ];
                             @endphp

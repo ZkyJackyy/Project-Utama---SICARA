@@ -56,7 +56,7 @@
                                                 {{ $item->product->nama_produk }}
                                             </h3>
                                             <p class="ml-4 text-lg font-bold text-[#700207]">
-                                                Rp {{ number_format($item->product->harga, 0, ',', '.') }}
+                                                Rp {{ number_format($item->custom_price ?? $item->product->harga, 0, ',', '.') }}
                                             </p>
                                         </div>
                                         @if ($item->custom_deskripsi)
