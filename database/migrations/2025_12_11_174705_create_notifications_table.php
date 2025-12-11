@@ -1,0 +1,40 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('transaksi_id')->nullable(); // pakai transaksi
+
+            $table->string('judul');   // contoh: "Status Pesanan Diperbarui"
+            $table->string('pesan');   // contoh: "Pesanan Anda kini dalam proses."
+            $table->boolean('is_read')->default(0);
+
+            $table->timestamps();
+
+            // FK User
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
+
+            // FK Transaksi (tabel pesanan)
+            $table->foreign('transaksi_id')
+                ->references('id')
+                ->on('transaksi')
+                ->onDelete('cascade');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('notifications');
+    }
+};

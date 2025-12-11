@@ -120,6 +120,14 @@ Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index
 Route::post('/pesanan/{id}/ulasan', [UlasanController::class, 'store'])
     ->name('customer.ulasan.store');
 
+    // Customer - Notifikasi
+Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
+Route::get('/notifikasi/read/{id}', [NotificationController::class, 'markRead'])->name('notifikasi.read');
+Route::post('/notifikasi/read-all', [NotificationController::class, 'markAllRead'])
+    ->name('notifikasi.readAll');
+
+
+
 
 
 

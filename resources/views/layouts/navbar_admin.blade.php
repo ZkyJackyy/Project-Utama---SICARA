@@ -50,12 +50,26 @@
     </a>
 
     {{-- Pesanan --}}
-    <a href="{{ route('admin.pesanan.index') }}"
-       class="flex items-center px-5 py-3 rounded-xl
-       {{ request()->is('admin/pesanan*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
-        <i class="fas fa-box w-6"></i>
-        <span class="ml-3 text-lg font-medium">Pesanan</span>
-    </a>
+<a href="{{ route('admin.pesanan.index') }}"
+   class="relative flex items-center px-5 py-3 rounded-xl
+   {{ request()->is('admin/pesanan*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+    
+    <i class="fas fa-box w-6"></i>
+    <span class="ml-3 text-lg font-medium">Pesanan</span>
+
+    {{-- BADGE NOTIFIKASI --}}
+    @php
+        $pendingCount = \App\Models\Transaksi::where('status', 'Menunggu Konfirmasi')->count();
+    @endphp
+
+    @if($pendingCount > 0)
+        <span class="absolute right-4 top-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse shadow">
+            {{ $pendingCount }}
+        </span>
+    @endif
+</a>
+
+
 
     {{-- Laporan --}}
     <a href="/laporan"

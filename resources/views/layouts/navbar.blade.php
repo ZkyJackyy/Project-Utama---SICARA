@@ -38,6 +38,17 @@
 
     {{-- Additional Style --}}
     <style>
+            /* Smooth fade + slide up */
+    .notif-animate {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .notif-show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
         html { scroll-behavior: smooth; }
         .nav-link {
             position: relative;
@@ -57,6 +68,17 @@
         .nav-link:hover::after, .nav-link.active::after {
             width: 100%;
         }
+
+        #notifDropdown {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all .25s ease-out;
+}
+
+#notifDropdown.open {
+    opacity: 1;
+    transform: translateY(0);
+}
     </style>
 </head>
 
@@ -64,60 +86,57 @@
 
     {{-- NAVBAR --}}
     <nav class="fixed top-0 w-full z-50 backdrop-blur-md bg-brandCream/90 shadow-sm transition-all">
-        {{-- Perubahan: px-4 di mobile, px-8 di desktop --}}
         <div class="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 py-3 md:py-4">
 
             {{-- Logo --}}
             <a href="/" class="flex items-center gap-2 md:gap-3 shrink-0">
-                {{-- Gambar Logo: Lebih kecil di mobile (w-10) --}}
                 <img src="{{ asset('gambar/5.png') }}" class="w-9 h-9 md:w-12 md:h-12 rounded-full shadow object-cover">
-                {{-- Teks Logo: Lebih kecil di mobile (text-xl) --}}
                 <span class="text-brandRed font-serif text-xl md:text-2xl font-semibold tracking-wide">DaraCake</span>
             </a>
 
-            {{-- Menu Desktop (Hidden di HP) --}}
+            {{-- Menu Desktop --}}
             <ul class="hidden md:flex items-center space-x-8 lg:space-x-10 text-brandDark font-medium text-sm lg:text-base">
                 <li><a href="/" class="nav-link {{ request()->is('/') ? 'active' : '' }}">Home</a></li>
                 <li><a href="{{ route('customer.produk.list') }}" class="nav-link {{ request()->is('produk*') ? 'active' : '' }}">Shop</a></li>
                 <li><a href="{{ route('custom-cake.index') }}" class="nav-link">Custom Cake</a></li>
             </ul>
 
-            {{-- User + Cart + Mobile Button --}}
-            {{-- Perubahan: Gap antar icon diperkecil di mobile --}}
+            {{-- USER + NOTIF + CART --}}
             <div class="flex items-center gap-3 md:gap-5 text-lg md:text-xl text-brandRed">
 
+
+                {{-- USER DROPDOWN --}}
                 @auth
-                    <div class="relative">
-                        <button id="userDropdownBtn" class="flex items-center gap-2 hover:opacity-80 focus:outline-none">
-                            <i class="fa fa-user"></i>
-                            {{-- Nama User: Hidden di mobile agar tidak penuh --}}
-                            <span class="text-sm font-medium hidden md:inline">{{ Auth::user()->name }}</span>
-                            <i class="fa fa-chevron-down text-xs hidden md:inline"></i>
-                        </button>
-                        
-                        {{-- Dropdown Menu --}}
-                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-4 w-48 bg-white text-brandDark border border-gray-100 rounded-xl shadow-xl py-2 text-sm z-50 animate-fade-in-down">
-                            <div class="px-4 py-2 border-b border-gray-100 md:hidden">
-                                <span class="font-bold text-brandRed">{{ Auth::user()->name }}</span>
-                            </div>
-                            <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-brandCream/50 hover:text-brandRed transition"><i class="fa fa-id-card mr-2"></i> Profile</a>
-                            <a href="{{ route('customer.pesanan.index') }}" class="block px-4 py-2 hover:bg-brandCream/50 hover:text-brandRed transition"><i class="fa fa-box mr-2"></i> Pesanan Saya</a>
-                            <div class="border-t border-gray-100 my-1"></div>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition"><i class="fa fa-sign-out-alt mr-2"></i> Logout</button>
-                            </form>
+                <div class="relative">
+                    <button id="userDropdownBtn" class="flex items-center gap-2 hover:opacity-80 focus:outline-none">
+                        <i class="fa fa-user"></i>
+                        <span class="text-sm font-medium hidden md:inline">{{ Auth::user()->name }}</span>
+                        <i class="fa fa-chevron-down text-xs hidden md:inline"></i>
+                    </button>
+
+                    <div id="userDropdownMenu" class="hidden absolute right-0 mt-4 w-48 bg-white text-brandDark border border-gray-100 rounded-xl shadow-xl py-2 text-sm z-50">
+                        <div class="px-4 py-2 border-b border-gray-100 md:hidden">
+                            <span class="font-bold text-brandRed">{{ Auth::user()->name }}</span>
                         </div>
+                        <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-brandCream/50 hover:text-brandRed transition"><i class="fa fa-id-card mr-2"></i> Profile</a>
+                        <a href="{{ route('customer.pesanan.index') }}" class="block px-4 py-2 hover:bg-brandCream/50 hover:text-brandRed transition"><i class="fa fa-box mr-2"></i> Pesanan Saya</a>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition"><i class="fa fa-sign-out-alt mr-2"></i> Logout</button>
+                        </form>
                     </div>
+                </div>
                 @else
                     <a href="{{ route('login') }}" class="hover:opacity-80 text-sm md:text-base font-medium border border-brandRed px-3 py-1 rounded-full transition hover:bg-brandRed hover:text-white">
                         Login
                     </a>
                 @endauth
 
+                {{-- CART --}}
                 <a href="{{ route('keranjang.index') }}" class="relative hover:opacity-80">
                     <i class="fa fa-shopping-cart"></i>
-                    {{-- Badge Keranjang (Opsional: Tambahkan logika count di sini nanti) --}}
+
                     @if(session('cart') && count(session('cart')) > 0)
                         <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
                             {{ count(session('cart')) }}
@@ -125,14 +144,58 @@
                     @endif
                 </a>
 
-                {{-- Tombol Hamburger (Hanya di HP) --}}
+                {{-- NOTIFIKASI --}}
+                @auth
+                <div class="relative">
+                    <button id="notifBtn" class="hover:opacity-80 relative">
+                        <i class="fa fa-bell"></i>
+
+                        {{-- Badge Notifikasi --}}
+                        @php
+                            $notifCount = $notifikasiGlobal->where('is_read', 0)->count();
+                        @endphp
+
+                        @if($notifCount > 0)
+                            <span class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                                {{ $notifCount }}
+                            </span>
+                        @endif
+                    </button>
+
+                    {{-- Dropdown Notifikasi --}}
+                    <div id="notifDropdown"
+                         class="hidden absolute right-0 mt-3 w-72 bg-white text-brandDark border border-gray-200 rounded-xl shadow-lg p-3 z-50">
+
+                        <h4 class="font-semibold text-brandRed mb-2 text-sm">Notifikasi</h4>
+
+                        @if($notifikasiGlobal->count() == 0)
+                            <p class="text-gray-500 text-sm py-2 text-center">Belum ada notifikasi</p>
+                        @else
+                            <div class="max-h-60 overflow-y-auto space-y-2">
+                                @foreach($notifikasiGlobal as $n)
+                                    <div class="border-b pb-2">
+                                        <p class="text-sm font-medium">{{ $n->judul }}</p>
+                                        <p class="text-xs text-gray-600 leading-4">{{ $n->pesan }}</p>
+                                        <span class="text-[10px] text-gray-400">
+                                            {{ $n->created_at->diffForHumans() }}
+                                        </span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @endauth
+                
+
+                {{-- Hamburger --}}
                 <button id="mobileMenuBtn" class="md:hidden hover:opacity-80 focus:outline-none ml-1">
                     <i class="fa fa-bars text-xl"></i>
                 </button>
             </div>
         </div>
 
-        {{-- MENU MOBILE (Dropdown Full Width) --}}
+        {{-- MENU MOBILE --}}
         <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full left-0 top-full z-40">
             <ul class="flex flex-col p-4 space-y-2 font-medium text-brandDark">
                 <li>
@@ -154,9 +217,22 @@
         </div>
     </nav>
 
+    @if(session('success') || session('error'))
+    <div id="alertBox"
+         class="notif-animate fixed top-20 right-5 md:right-10 bg-white border-l-4 
+                {{ session('success') ? 'border-green-500' : 'border-red-500' }}
+                shadow-xl w-72 md:w-80 rounded-lg px-4 py-3 z-[9999]">
+        <div class="flex items-start gap-3">
+            <i class="fa {{ session('success') ? 'fa-check-circle text-green-600' : 'fa-times-circle text-red-600' }} text-xl"></i>
+            <p class="text-sm text-gray-800 leading-relaxed">
+                {{ session('success') ?? session('error') }}
+            </p>
+        </div>
+    </div>
+@endif
+
 
     {{-- MAIN CONTENT --}}
-    {{-- Perubahan: Padding top disesuaikan agar tidak tertutup navbar --}}
     <main class="pt-[72px] md:pt-[88px]">
         @yield('content')
     </main>
@@ -170,55 +246,115 @@
     </a>
 
 
-    {{-- Script --}}
     <script>
-        // Logic Dropdown User
-        const userBtn = document.getElementById('userDropdownBtn');
-        const userMenu = document.getElementById('userDropdownMenu');
-        
-        if(userBtn){
-            userBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                userMenu.classList.toggle('hidden');
-            });
-        }
+document.addEventListener("DOMContentLoaded", () => {
 
-        // Logic Mobile Menu (Hamburger)
-        const mobileBtn = document.getElementById('mobileMenuBtn');
-        const mobileMenu = document.getElementById('mobileMenu');
+    /* -----------------------------
+       USER DROPDOWN
+    ------------------------------ */
+    const userBtn   = document.getElementById("userDropdownBtn");
+    const userMenu  = document.getElementById("userDropdownMenu");
 
-        if(mobileBtn){
-            mobileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                mobileMenu.classList.toggle('hidden');
-                // Ganti icon bars ke times (X) jika menu terbuka (opsional visual feedback)
-                const icon = mobileBtn.querySelector('i');
-                if(mobileMenu.classList.contains('hidden')){
-                     icon.classList.remove('fa-times');
-                     icon.classList.add('fa-bars');
-                } else {
-                     icon.classList.remove('fa-bars');
-                     icon.classList.add('fa-times');
-                }
-            });
-        }
+    if (userBtn) {
+        userBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            userMenu.classList.toggle("hidden");
+        });
+    }
 
-        // Klik di luar menu untuk menutup menu
-        document.addEventListener('click', (e) => {
-            if(userBtn && !userBtn.contains(e.target) && !userMenu.contains(e.target)){
-                userMenu.classList.add('hidden');
-            }
-            if(mobileBtn && !mobileBtn.contains(e.target) && !mobileMenu.contains(e.target)){
-                mobileMenu.classList.add('hidden');
-                // Reset icon
-                if(mobileBtn) {
-                    const icon = mobileBtn.querySelector('i');
-                    icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
-                }
+    /* -----------------------------
+       MOBILE MENU
+    ------------------------------ */
+    const mobileBtn  = document.getElementById("mobileMenuBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    if (mobileBtn) {
+        mobileBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            mobileMenu.classList.toggle("hidden");
+
+            const icon = mobileBtn.querySelector("i");
+            icon.classList.toggle("fa-bars");
+            icon.classList.toggle("fa-times");
+        });
+    }
+
+    /* -----------------------------
+       NOTIFIKASI DROPDOWN + AUTO READ
+    ------------------------------ */
+    const notifBtn      = document.getElementById("notifBtn");
+    const notifDropdown = document.getElementById("notifDropdown");
+
+    if (notifBtn) {
+        notifBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            notifDropdown.classList.toggle("hidden");
+
+            // Tambahkan animasi smooth
+            if (!notifDropdown.classList.contains("hidden")) {
+                notifDropdown.classList.add("open");
+
+                // Auto mark as read
+                await fetch("{{ route('notifikasi.readAll') }}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        "Accept": "application/json"
+                    }
+                });
+
+                // Hilangkan badge notif
+                const badge = notifBtn.querySelector("span");
+                if (badge) badge.remove();
+
+            } else {
+                notifDropdown.classList.remove("open");
             }
         });
-    </script>
+    }
+
+    /* -----------------------------
+       CLICK OUTSIDE (CLOSE DROPDOWN)
+    ------------------------------ */
+    document.addEventListener("click", (e) => {
+        if (userBtn && !userBtn.contains(e.target) && !userMenu.contains(e.target)) {
+            userMenu.classList.add("hidden");
+        }
+
+        if (mobileBtn && !mobileBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+            mobileMenu.classList.add("hidden");
+
+            const icon = mobileBtn.querySelector("i");
+            icon.classList.add("fa-bars");
+            icon.classList.remove("fa-times");
+        }
+
+        if (notifBtn && !notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+            notifDropdown.classList.add("hidden");
+            notifDropdown.classList.remove("open");
+        }
+    });
+
+
+
+    /* -----------------------------
+       GLOBAL ALERT (Fade In + Auto Remove)
+    ------------------------------ */
+    const alertBox = document.getElementById("alertBox");
+
+    if (alertBox) {
+        setTimeout(() => alertBox.classList.add("notif-show"), 100);
+
+        setTimeout(() => {
+            alertBox.classList.remove("notif-show");
+            setTimeout(() => alertBox.remove(), 600);
+        }, 3500);
+    }
+
+});
+</script>
+
 
 </body>
 </html>

@@ -5,32 +5,37 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Transaksi;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class PesananController extends Controller
 {
-    // ✅ Tampilkan semua pesanan
+    // =======================
+    // ADMIN: List Pesanan
+    // =======================
     public function index()
     {
-        // Tambahkan 'detailTransaksi.produk' agar kita bisa menampilkan nama produk di tabel
         $pesanan = Transaksi::with(['user', 'detailTransaksi.produk'])
                             ->orderBy('created_at', 'desc')
-                            ->paginate(10); // Gunakan paginate agar halaman tidak panjang ke bawah
+                            ->paginate(10);
 
         return view('admin.pesanan.index', compact('pesanan'));
     }
 
-    // ✅ Detail pesanan
+    // =======================
+    // ADMIN: Detail Pesanan
+    // =======================
     public function show($id)
-{
-    $pesanan = Transaksi::with(['user', 'detailTransaksi.produk'])->findOrFail($id);
-    return view('admin.pesanan.show', compact('pesanan'));
-}
+    {
+        $pesanan = Transaksi::with(['user', 'detailTransaksi.produk'])->findOrFail($id);
+        return view('admin.pesanan.show', compact('pesanan'));
+    }
 
-
-    // ✅ Update status pesanan
+    // =======================
+    // ADMIN: Update Status
+    // =======================
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -39,69 +44,90 @@ class PesananController extends Controller
 
         $pesanan = Transaksi::findOrFail($id);
 
-        // === LOGIKA BARU DITAMBAHKAN DI SINI ===
-        // Jika statusnya sudah 'Dibatalkan', jangan biarkan admin mengubahnya.
         if ($pesanan->status == 'Dibatalkan') {
             return redirect()->route('admin.pesanan.show', $pesanan->id)
-                             ->with('error', 'Status pesanan yang sudah Dibatalkan oleh customer tidak dapat diubah.');
+                             ->with('error', 'Status pesanan yang sudah dibatalkan tidak dapat diubah.');
         }
-        // === AKHIR LOGIKA BARU ===
 
         $pesanan->status = $request->status;
         $pesanan->save();
+
+        // =======================
+        // NOTIFIKASI KE CUSTOMER
+        // =======================
+        Notification::create([
+            'user_id'       => $pesanan->user_id,
+            'transaksi_id'  => $pesanan->id,
+            'judul'         => 'Status Pesanan Diperbarui',
+            'pesan'         => 'Status pesanan #' . $pesanan->id . ' telah berubah menjadi: ' . $request->status,
+        ]);
 
         return redirect()->route('admin.pesanan.show', $pesanan->id)
                          ->with('success', 'Status pesanan berhasil diperbarui!');
     }
 
-        // ✅ Tampilkan pesanan khusus customer yang sedang login
+    // =======================
+    // CUSTOMER: List Pesanan Saya
+    // =======================
     public function pesananCustomer()
     {
         $pesanan = Transaksi::with('detailTransaksi')
-                    ->where('user_id', Auth::id())   // hanya pesanan milik user saat ini
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+                            ->where('user_id', Auth::id())
+                            ->orderBy('created_at', 'desc')
+                            ->get();
 
         return view('customer.pesanan.index', compact('pesanan'));
     }
 
+    // =======================
+    // CUSTOMER: Batalkan Pesanan
+    // =======================
     public function batalPesanan(Request $request, Transaksi $transaksi)
     {
-        // 1. Cek Kepemilikan (Pastikan user hanya bisa batalkan pesanannya sendiri)
         if ($transaksi->user_id != Auth::id()) {
             abort(403, 'Akses ditolak.');
         }
 
-        // 2. Cek Status (Hanya status tertentu yang boleh dibatalkan)
-        $allowedStatus = ['Menunggu Konfirmasi'];
-        if (!in_array($transaksi->status, $allowedStatus)) {
-            return redirect()->back()->with('error', 'Pesanan ini tidak dapat dibatalkan lagi.');
+        if ($transaksi->status !== 'Menunggu Konfirmasi') {
+            return redirect()->back()->with('error', 'Pesanan ini tidak dapat dibatalkan.');
         }
 
         try {
             DB::beginTransaction();
 
-            // 3. Kembalikan Stok
+            // Kembalikan stok
             foreach ($transaksi->detailTransaksi as $detail) {
-                // Gunakan lockForUpdate untuk mencegah race condition
+
                 $product = Product::lockForUpdate()->find($detail->produk_id);
+                
                 if ($product) {
                     $product->stok += $detail->jumlah;
                     $product->save();
                 }
             }
 
-            // 4. Ubah Status Pesanan
+            // Ubah status
             $transaksi->status = 'Dibatalkan';
             $transaksi->save();
 
-            DB::commit(); // Simpan semua perubahan jika sukses
+            // =======================
+            // NOTIFIKASI UNTUK ADMIN
+            // (Misal admin id = 1)
+            // =======================
+            Notification::create([
+                'user_id'       => 1, // admin
+                'transaksi_id'  => $transaksi->id,
+                'judul'         => 'Pesanan Dibatalkan Customer',
+                'pesan'         => 'Customer telah membatalkan pesanan #' . $transaksi->id,
+            ]);
+
+            DB::commit();
 
             return redirect()->back()->with('success', 'Pesanan #' . $transaksi->id . ' berhasil dibatalkan.');
 
         } catch (\Exception $e) {
-            DB::rollBack(); // Batalkan semua jika ada error
-            return redirect()->back()->with('error', 'Gagal membatalkan pesanan. Silakan coba lagi.');
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal membatalkan pesanan.');
         }
     }
 }
