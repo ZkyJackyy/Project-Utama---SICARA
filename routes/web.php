@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UlasanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PesananController;
@@ -13,6 +15,8 @@ use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\CustomCakeController;
+use App\Http\Controllers\RajaOngkirController;
+use App\Http\Controllers\NotificationController;
 
 // ================== HOME (Customer) ==================
 Route::get('/', [ProductController::class, 'indexHome'])->name('dashboard');
@@ -126,7 +130,19 @@ Route::get('/notifikasi/read/{id}', [NotificationController::class, 'markRead'])
 Route::post('/notifikasi/read-all', [NotificationController::class, 'markAllRead'])
     ->name('notifikasi.readAll');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index'); // List Tiket
+    Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create'); // Form Lapor
+    Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store'); // Simpan Lapor
+    Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show'); // Detail Chat
+    Route::post('/tickets/{id}/reply', [TicketController::class, 'reply'])->name('tickets.reply'); // Balas Chat
+    Route::post('/tickets/{id}/close', [TicketController::class, 'close'])->name('tickets.close'); // Tutup Tiket
+    Route::get('/tickets/{id}/fetch', [TicketController::class, 'fetchMessages'])->name('tickets.fetch');
+});
 
+Route::get('/api/provinces', [RajaOngkirController::class, 'getProvinces']);
+Route::get('/api/cities/{provinceId}', [RajaOngkirController::class, 'getCities']);
+Route::post('/api/ongkir', [RajaOngkirController::class, 'checkOngkir']);
 
 
 

@@ -27,8 +27,8 @@
 
                 {{-- Kolom Kanan: Detail & Aksi --}}
                 <div class="md:col-span-3 mt-6 md:mt-0">
-                    <span class="text-sm font-semibold text-gray-500 uppercase">{{ $product->jenis->jenis_produk }}</span>
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">{{ $product->nama_produk }}</h1>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">{{ $product->jenis->jenis_produk }}</span>
                     
                     {{-- 2. Rating Bintang & Ringkasan (DINAMIS) --}}
                     <div class="flex items-center mt-2">
@@ -56,12 +56,12 @@
 
                     {{-- Info Penting --}}
                     <div class="mt-6">
-                        <h3 class="font-semibold text-gray-800 mb-2">Info Penting:</h3>
-                        <ul class="space-y-2 text-gray-600 text-sm">
-                            <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Stok Tersedia: <strong>{{ $product->stok }}</strong></li>
+                        <h3 class="font-semibold text-gray-800 mb-2">Stok Tersedia: <strong>{{ $product->stok }}</strong></h3>
+                        {{-- <ul class="space-y-2 text-gray-600 text-sm">
+                            <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> </li>
                             <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Dibuat dengan bahan premium</li>
                             <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Pengiriman aman ke seluruh kota</li>
-                        </ul>
+                        </ul> --}}
                     </div>
                     
                     <div class="border-t border-gray-200 my-6"></div>

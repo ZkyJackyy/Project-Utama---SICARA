@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard - Dara Cake</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    {{-- Alpine.js Wajib Ada --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
@@ -15,87 +16,120 @@
         ::-webkit-scrollbar-thumb:hover { background: #b18f87; }
     </style>
 </head>
-<body class="bg-[#F4ECE9] font-sans">
+
+{{-- 1. TAMBAHKAN x-data DI SINI --}}
+<body class="bg-[#F4ECE9] font-sans" x-data="{ sidebarOpen: false }">
 
     <div class="flex h-screen">
-        <aside class="w-72 bg-gradient-to-b from-[#ECCFC3] to-[#4a0105] text-white shadow-2xl hidden md:block">
+
+        {{-- 2. OVERLAY GELAP (Backdrop) untuk Mobile --}}
+        <div x-show="sidebarOpen" 
+             @click="sidebarOpen = false" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-20 bg-black bg-opacity-50 md:hidden">
+        </div>
+
+        {{-- 3. SIDEBAR (Perbaikan Logika Class) --}}
+        {{-- Hapus 'hidden md:block', ganti dengan transform logic --}}
+        <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+               class="fixed inset-y-0 left-0 z-30 w-72 bg-gradient-to-b from-[#ECCFC3] to-[#4a0105] text-white shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0">
+            
             <div class="p-6 flex flex-col items-center border-b border-white/20">
                 <img src="/gambar/5.png" alt="Logo" class="h-20 mb-3 drop-shadow-lg">
                 <h1 class="text-3xl font-extrabold tracking-wide">DARA CAKE</h1>
             </div>
 
             <nav class="mt-6 space-y-1 px-3">
-    {{-- Dashboard --}}
-    <a href="/dashboard-admin"
-       class="flex items-center px-5 py-3 rounded-xl
-       {{ request()->is('dashboard-admin') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
-        <i class="fas fa-tachometer-alt w-6"></i>
-        <span class="ml-3 text-lg font-medium">Dashboard</span>
-    </a>
+                {{-- Dashboard --}}
+                <a href="/dashboard-admin"
+                   class="flex items-center px-5 py-3 rounded-xl
+                   {{ request()->is('dashboard-admin') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                    <i class="fas fa-tachometer-alt w-6"></i>
+                    <span class="ml-3 text-lg font-medium">Dashboard</span>
+                </a>
 
-    {{-- Produk --}}
-    <a href="/daftar-produk"
-       class="flex items-center px-5 py-3 rounded-xl
-       {{ request()->is('daftar-produk') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
-        <i class="fas fa-box-open w-6"></i>
-        <span class="ml-3 text-lg font-medium">Produk</span>
-    </a>
+                {{-- Produk --}}
+                <a href="/daftar-produk"
+                   class="flex items-center px-5 py-3 rounded-xl
+                   {{ request()->is('daftar-produk') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                    <i class="fas fa-box-open w-6"></i>
+                    <span class="ml-3 text-lg font-medium">Produk</span>
+                </a>
 
-    {{-- Kategori --}}
-    <a href="/category"
-       class="flex items-center px-5 py-3 rounded-xl
-       {{ request()->is('category') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
-        <i class="fas fa-tags w-6"></i>
-        <span class="ml-3 text-lg font-medium">Kategori</span>
-    </a>
+                {{-- Kategori --}}
+                <a href="/category"
+                   class="flex items-center px-5 py-3 rounded-xl
+                   {{ request()->is('category') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                    <i class="fas fa-tags w-6"></i>
+                    <span class="ml-3 text-lg font-medium">Kategori</span>
+                </a>
 
-    {{-- Pesanan --}}
-<a href="{{ route('admin.pesanan.index') }}"
-   class="relative flex items-center px-5 py-3 rounded-xl
-   {{ request()->is('admin/pesanan*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
-    
-    <i class="fas fa-box w-6"></i>
-    <span class="ml-3 text-lg font-medium">Pesanan</span>
+                {{-- Pesanan --}}
+                <a href="{{ route('admin.pesanan.index') }}"
+                   class="relative flex items-center px-5 py-3 rounded-xl
+                   {{ request()->is('admin/pesanan*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                    <i class="fas fa-box w-6"></i>
+                    <span class="ml-3 text-lg font-medium">Pesanan</span>
+                    
+                    @php
+                        $pendingCount = \App\Models\Transaksi::where('status', 'Menunggu Konfirmasi')->count();
+                    @endphp
+                    @if($pendingCount > 0)
+                        <span class="absolute right-4 top-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse shadow">
+                            {{ $pendingCount }}
+                        </span>
+                    @endif
+                </a>
 
-    {{-- BADGE NOTIFIKASI --}}
-    @php
-        $pendingCount = \App\Models\Transaksi::where('status', 'Menunggu Konfirmasi')->count();
-    @endphp
+                {{-- Layanan Bantuan (Customer Service) --}}
+                <a href="{{ route('tickets.index') }}"
+                   class="relative flex items-center px-5 py-3 rounded-xl transition-all duration-200
+                   {{ request()->routeIs('tickets*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10 hover:translate-x-1' }}">
+                    <i class="fas fa-headset w-6"></i>
+                    <span class="ml-3 text-lg font-medium">Layanan Bantuan</span>
 
-    @if($pendingCount > 0)
-        <span class="absolute right-4 top-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse shadow">
-            {{ $pendingCount }}
-        </span>
-    @endif
-</a>
+                    @php
+                        $openTicketCount = \App\Models\Tiket::where('status', 'open')->count();
+                    @endphp
+                    @if($openTicketCount > 0)
+                        <span class="absolute right-4 top-3 bg-red-600 border border-[#4a0105] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                            {{ $openTicketCount }}
+                        </span>
+                    @endif
+                </a>
 
+                {{-- Laporan --}}
+                <a href="/laporan"
+                   class="flex items-center px-5 py-3 rounded-xl
+                   {{ request()->is('laporan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                    <i class="fas fa-chart-line w-6"></i>
+                    <span class="ml-3 text-lg font-medium">Laporan Penjualan</span>
+                </a>
 
-
-    {{-- Laporan --}}
-    <a href="/laporan"
-       class="flex items-center px-5 py-3 rounded-xl
-       {{ request()->is('laporan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
-        <i class="fas fa-chart-line w-6"></i>
-        <span class="ml-3 text-lg font-medium">Laporan Penjualan</span>
-    </a>
-
-    {{-- Pengaturan --}}
-    <a href="/keuangan"
-       class="flex items-center px-5 py-3 rounded-xl
-       {{ request()->is('pengaturan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
-        <i class="fas fa-chart-line w-6"></i>
-        <span class="ml-3 text-lg font-medium">Laporan Keuangan</span>
-    </a>
-</nav>
-
+                {{-- Keuangan --}}
+                <a href="/keuangan"
+                   class="flex items-center px-5 py-3 rounded-xl
+                   {{ request()->is('pengaturan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                    <i class="fas fa-chart-line w-6"></i>
+                    <span class="ml-3 text-lg font-medium">Laporan Keuangan</span>
+                </a>
+            </nav>
         </aside>
 
         <div class="flex-1 flex flex-col overflow-hidden">
             <header class="flex justify-between items-center px-6 py-4 bg-white shadow-lg border-b border-[#ECCFC3]">
                 <div class="flex items-center">
-                    <button class="text-gray-600 focus:outline-none md:hidden">
-                        <i class="fas fa-bars text-xl"></i>
+                    
+                    {{-- 4. TOMBOL HAMBURGER (Tambahkan @click) --}}
+                    <button @click="sidebarOpen = true" class="text-gray-600 focus:outline-none md:hidden hover:text-[#4a0105]">
+                        <i class="fas fa-bars text-2xl"></i>
                     </button>
+                    
                     <h1 class="text-2xl font-bold text-gray-700 ml-4">Dashboard</h1>
                 </div>
 

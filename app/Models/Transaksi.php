@@ -17,6 +17,9 @@ class Transaksi extends Model
         'total',
         'status',
         'is_custom',
+        'shipping_method',
+        'shipping_cost',
+        'shipping_address',
     ];
 
     // ✅ Tambahkan relasi ke user

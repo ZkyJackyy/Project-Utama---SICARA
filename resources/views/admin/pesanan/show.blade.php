@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="bg-[#ECE6DA] min-h-screen py-10 px-6">
-    <div class="max-w-6xl mx-auto"> {{-- Lebar dimaksimalkan --}}
+    <div class="max-w-6xl mx-auto"> 
 
         <div class="mb-6 flex justify-between items-center">
             <a href="{{ route('admin.pesanan.index') }}" 
@@ -13,13 +13,8 @@
         </div>
 
         @if (session('success'))
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm animate-fade-in-down">
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
                 {{ session('success') }}
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm animate-fade-in-down">
-                {{ session('error') }}
             </div>
         @endif
 
@@ -28,32 +23,44 @@
             {{-- KOLOM KIRI: DETAIL ITEM & INFO --}}
             <div class="lg:col-span-2 space-y-6">
                 
-                {{-- 1. Info Pelanggan & Status (Card) --}}
+                {{-- 1. Info Pelanggan & Pengiriman --}}
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="font-bold text-lg text-[#700207] mb-4 border-b pb-2">Informasi Pelanggan</h3>
+                    <h3 class="font-bold text-lg text-[#700207] mb-4 border-b pb-2">Informasi Pesanan</h3>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
                             <p class="text-xs text-gray-500 uppercase font-semibold">Nama Pelanggan</p>
                             <p class="text-gray-900 font-medium text-lg">{{ $pesanan->user->name ?? 'Guest' }}</p>
+                            <p class="text-gray-600 text-sm">{{ $pesanan->user->email ?? '-' }}</p>
                         </div>
+                        
                         <div>
-                            <p class="text-xs text-gray-500 uppercase font-semibold">Kontak (Email)</p>
-                            <p class="text-gray-900">{{ $pesanan->user->email ?? '-' }}</p>
-                            {{-- Jika ada kolom no_hp di tabel users, buka komen ini: --}}
-                            {{-- <p class="text-gray-600 text-sm mt-1"><i class="fab fa-whatsapp text-green-500"></i> {{ $pesanan->user->no_hp }}</p> --}}
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase font-semibold">Tanggal Pemesanan</p>
-                            <p class="text-gray-900">{{ $pesanan->created_at->format('d F Y, H:i') }} WIB</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase font-semibold">Status Pesanan</p>
-                            <span class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold text-white 
-                                {{ $pesanan->status == 'Selesai' ? 'bg-green-500' : 
-                                  ($pesanan->status == 'Dibatalkan' ? 'bg-red-500' : 
-                                  ($pesanan->status == 'Diproses' ? 'bg-blue-500' : 'bg-yellow-500')) }}">
-                                {{ $pesanan->status }}
-                            </span>
+                            <p class="text-xs text-gray-500 uppercase font-semibold">Metode Pengiriman</p>
+                            
+                            @if(empty($pesanan->shipping_method))
+                                {{-- DATA LAMA (KOSONG) --}}
+                                <p class="text-gray-400 text-sm italic mt-1">- Data pengiriman tidak tersedia (Pesanan Lama) -</p>
+                            
+                            @elseif(str_contains(strtoupper($pesanan->shipping_method), 'AMBIL') || str_contains(strtoupper($pesanan->shipping_method), 'PICKUP'))
+                                {{-- PICKUP --}}
+                                <div class="mt-1 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <p class="text-yellow-800 font-bold flex items-center">
+                                        <i class="fas fa-store mr-2"></i> AMBIL DI TOKO
+                                    </p>
+                                    <p class="text-xs text-yellow-700 mt-1">Customer akan datang mengambil pesanan.</p>
+                                </div>
+                            
+                            @else
+                                {{-- EKSPEDISI --}}
+                                <p class="text-gray-900 font-bold mt-1">
+                                    <i class="fas fa-truck text-gray-500"></i> {{ $pesanan->shipping_method }}
+                                </p>
+                                <div class="mt-2">
+                                    <p class="text-xs text-gray-500 uppercase font-semibold">Alamat Tujuan:</p>
+                                    <p class="text-gray-700 text-sm bg-gray-50 p-2 rounded border mt-1">
+                                        {{ $pesanan->shipping_address ?? '-' }}
+                                    </p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -69,7 +76,7 @@
                                 <tr>
                                     <th class="px-6 py-3">Produk</th>
                                     <th class="px-6 py-3 text-center">Qty</th>
-                                    <th class="px-6 py-3 text-right">Harga Satuan</th>
+                                    <th class="px-6 py-3 text-right">Harga</th>
                                     <th class="px-6 py-3 text-right">Total</th>
                                 </tr>
                             </thead>
@@ -80,29 +87,33 @@
                                         <div class="font-bold text-gray-900 text-base">
                                             {{ $detail->produk->nama_produk ?? 'Produk Dihapus' }}
                                         </div>
-                                        
-                                        {{-- 👇 BAGIAN PENTING: MENAMPILKAN CATATAN CUSTOM 👇 --}}
                                         @if($detail->catatan)
-                                            <div class="mt-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                                                <p class="text-xs font-bold text-yellow-800 mb-1 flex items-center gap-1">
-                                                    <i class="fas fa-sticky-note"></i> Detail Custom:
-                                                </p>
-                                                <p class="text-sm text-gray-700 italic leading-relaxed">
-                                                    "{{ $detail->catatan }}"
-                                                </p>
+                                            <div class="mt-1 text-xs text-gray-500 bg-yellow-50 p-2 rounded border border-yellow-100">
+                                                <i class="fas fa-sticky-note text-yellow-600"></i> Note: "{{ $detail->catatan }}"
                                             </div>
                                         @endif
-                                        {{-- 👆 AKHIR BAGIAN PENTING 👆 --}}
                                     </td>
                                     <td class="px-6 py-4 text-center font-medium">{{ $detail->jumlah }}</td>
-                                    <td class="px-6 py-4 text-right text-gray-600">Rp {{ number_format($detail->harga, 0, ',', '.') }}</td>
-                                    <td class="px-6 py-4 text-right font-bold text-[#700207]">Rp {{ number_format($detail->harga * $detail->jumlah, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4 text-right">Rp {{ number_format($detail->harga, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4 text-right font-bold">Rp {{ number_format($detail->harga * $detail->jumlah, 0, ',', '.') }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
                             <tfoot class="bg-gray-50">
                                 <tr>
-                                    <td colspan="3" class="px-6 py-4 text-right font-bold text-gray-700">Total Pembayaran</td>
+                                    <td colspan="3" class="px-6 py-3 text-right font-medium text-gray-600">Subtotal</td>
+                                    <td class="px-6 py-3 text-right text-gray-800">
+                                        Rp {{ number_format($pesanan->total - ($pesanan->shipping_cost ?? 0), 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="px-6 py-3 text-right font-medium text-gray-600">Ongkos Kirim</td>
+                                    <td class="px-6 py-3 text-right text-gray-800">
+                                        Rp {{ number_format($pesanan->shipping_cost ?? 0, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                                <tr class="bg-red-50">
+                                    <td colspan="3" class="px-6 py-4 text-right font-bold text-[#700207]">Total Akhir</td>
                                     <td class="px-6 py-4 text-right font-extrabold text-xl text-[#700207]">
                                         Rp {{ number_format($pesanan->total, 0, ',', '.') }}
                                     </td>
@@ -158,17 +169,13 @@
                         <div class="p-4 bg-blue-50 text-blue-800 rounded-lg border border-blue-100 text-center">
                             <i class="fas fa-hand-holding-usd text-2xl mb-2"></i>
                             <p class="font-medium">Bayar di Tempat (COD)</p>
-                            <p class="text-xs mt-1">Pastikan kurir menerima uang saat pengantaran.</p>
                         </div>
                     @elseif($pesanan->bukti_pembayaran)
                         <div class="group relative">
                             <a href="{{ asset('storage/' . $pesanan->bukti_pembayaran) }}" target="_blank">
                                 <img src="{{ asset('storage/' . $pesanan->bukti_pembayaran) }}" 
                                      alt="Bukti Transfer" 
-                                     class="w-full rounded-lg border border-gray-200 shadow-sm hover:opacity-90 transition cursor-zoom-in">
-                                <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition rounded-lg pointer-events-none">
-                                    <span class="bg-white px-3 py-1 rounded-full text-xs font-bold shadow">Klik untuk memperbesar</span>
-                                </div>
+                                     class="w-full rounded-lg border border-gray-200 shadow-sm hover:opacity-90 transition">
                             </a>
                         </div>
                         <a href="{{ asset('storage/' . $pesanan->bukti_pembayaran) }}" download class="block text-center text-sm text-[#700207] hover:underline mt-3">
@@ -178,7 +185,6 @@
                         <div class="p-6 bg-red-50 text-red-700 rounded-lg border border-red-100 text-center">
                             <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
                             <p class="font-bold">Belum Ada Bukti</p>
-                            <p class="text-xs">Pelanggan belum mengunggah bukti pembayaran.</p>
                         </div>
                     @endif
                 </div>

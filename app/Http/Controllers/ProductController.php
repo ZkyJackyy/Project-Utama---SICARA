@@ -28,8 +28,8 @@ class ProductController extends Controller
         // 4. Total Stok Produk (KECUALI Custom Cake ID 23)
         // Logika: Custom cake stoknya 999 (dummy), jadi harus dibuang dari hitungan agar data akurat.
         $totalStok = Product::whereNull('deleted_at')
-                            ->where('id', '!=', 23) // <-- ID Custom Cake dikecualikan
-                            ->sum('stok');
+            ->where('id', '!=', 23) // <-- ID Custom Cake dikecualikan
+            ->sum('stok');
 
         // 5. Produk Terjual (Hanya dari pesanan Selesai)
         $produkTerjual = DetailTransaksi::whereHas('transaksi', function ($query) {
@@ -149,7 +149,7 @@ class ProductController extends Controller
             ->get();
 
 
-            // Jika data penjualan masih kosong (toko baru), 
+        // Jika data penjualan masih kosong (toko baru), 
         // fallback ke produk terbaru agar tidak kosong
         if ($products->isEmpty() || $products->sum('total_terjual') == 0) {
             $products = Product::where('id', '!=', $idProdukKustom)
@@ -177,7 +177,7 @@ class ProductController extends Controller
     {
         // 1. Eager load ulasan beserta user yang menulisnya agar hemat query
         // Urutkan dari ulasan terbaru
-        $product->load(['ulasan.user' => function($query) {
+        $product->load(['ulasan.user' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }]);
 
@@ -187,7 +187,7 @@ class ProductController extends Controller
 
         // 3. Produk Terkait (Logika lama Anda)
         $relatedProducts = Product::where('jenis_id', $product->jenis_id)
-            ->where('id', '!=', $product->id)
+            ->where('id', '!=', $product->id)->where('id', '!=', 23)
             ->latest()
             ->take(4)
             ->get();
@@ -206,7 +206,4 @@ class ProductController extends Controller
         $product->restore(); // Ini akan mengembalikan produk dari "tong sampah"
         return redirect()->back()->with('success', 'Produk berhasil ditampilkan kembali.');
     }
-
-
-    
 }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#200B06">
     <title>{{ $title ?? 'Dara Cake' }}</title>
 
     {{-- Fonts --}}
@@ -99,6 +100,7 @@
                 <li><a href="/" class="nav-link {{ request()->is('/') ? 'active' : '' }}">Home</a></li>
                 <li><a href="{{ route('customer.produk.list') }}" class="nav-link {{ request()->is('produk*') ? 'active' : '' }}">Shop</a></li>
                 <li><a href="{{ route('custom-cake.index') }}" class="nav-link">Custom Cake</a></li>
+                <li><a href="{{ route('tickets.index') }}">Layanan Bantuan</a></li>
             </ul>
 
             {{-- USER + NOTIF + CART --}}
@@ -145,47 +147,59 @@
                 </a>
 
                 {{-- NOTIFIKASI --}}
-                @auth
-                <div class="relative">
-                    <button id="notifBtn" class="hover:opacity-80 relative">
-                        <i class="fa fa-bell"></i>
+@auth
+<div class="relative">
+    <button id="notifBtn" class="hover:opacity-80 relative focus:outline-none">
+        <i class="fa fa-bell text-xl"></i>
 
-                        {{-- Badge Notifikasi --}}
-                        @php
-                            $notifCount = $notifikasiGlobal->where('is_read', 0)->count();
-                        @endphp
+        {{-- Badge Notifikasi --}}
+        @php
+            // Ambil notif global dari AppServiceProvider atau query langsung
+            // Pastikan variabel $notifikasiGlobal tersedia. Jika tidak, ganti query manual:
+            $unreadCount = \App\Models\Notification::where('user_id', Auth::id())->where('is_read', 0)->count();
+            $latestNotifs = \App\Models\Notification::where('user_id', Auth::id())->latest()->take(5)->get();
+        @endphp
 
-                        @if($notifCount > 0)
-                            <span class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                                {{ $notifCount }}
-                            </span>
-                        @endif
-                    </button>
+        @if($unreadCount > 0)
+            <span id="notifBadge" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                {{ $unreadCount }}
+            </span>
+        @endif
+    </button>
 
-                    {{-- Dropdown Notifikasi --}}
-                    <div id="notifDropdown"
-                         class="hidden absolute right-0 mt-3 w-72 bg-white text-brandDark border border-gray-200 rounded-xl shadow-lg p-3 z-50">
+    {{-- Dropdown Notifikasi --}}
+    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white text-brandDark border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden origin-top-right transition-all duration-200">
+        
+        <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <h4 class="font-bold text-brandRed text-sm">Notifikasi</h4>
+            @if($unreadCount > 0)
+                <span class="text-[10px] text-gray-500">Baru masuk</span>
+            @endif
+        </div>
 
-                        <h4 class="font-semibold text-brandRed mb-2 text-sm">Notifikasi</h4>
-
-                        @if($notifikasiGlobal->count() == 0)
-                            <p class="text-gray-500 text-sm py-2 text-center">Belum ada notifikasi</p>
-                        @else
-                            <div class="max-h-60 overflow-y-auto space-y-2">
-                                @foreach($notifikasiGlobal as $n)
-                                    <div class="border-b pb-2">
-                                        <p class="text-sm font-medium">{{ $n->judul }}</p>
-                                        <p class="text-xs text-gray-600 leading-4">{{ $n->pesan }}</p>
-                                        <span class="text-[10px] text-gray-400">
-                                            {{ $n->created_at->diffForHumans() }}
-                                        </span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
+        <div class="max-h-64 overflow-y-auto">
+            @forelse($latestNotifs as $n)
+                <div class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition {{ $n->is_read == 0 ? 'bg-red-50/30' : '' }}">
+                    <p class="text-sm font-semibold text-gray-800">{{ $n->judul }}</p>
+                    <p class="text-xs text-gray-600 mt-1 leading-snug">{{ Str::limit($n->pesan, 60) }}</p>
+                    <p class="text-[10px] text-gray-400 mt-2 text-right">
+                        {{ $n->created_at->diffForHumans() }}
+                    </p>
                 </div>
-                @endauth
+            @empty
+                <div class="py-6 text-center">
+                    <i class="fa fa-bell-slash text-gray-300 text-2xl mb-2"></i>
+                    <p class="text-gray-500 text-sm">Belum ada notifikasi</p>
+                </div>
+            @endforelse
+        </div>
+
+        <a href="{{ route('notifikasi.index') }}" class="block text-center py-2 text-xs font-bold text-brandRed bg-gray-50 hover:bg-gray-100 transition">
+            Lihat Semua
+        </a>
+    </div>
+</div>
+@endauth
                 
 
                 {{-- Hamburger --}}
@@ -233,7 +247,7 @@
 
 
     {{-- MAIN CONTENT --}}
-    <main class="pt-[72px] md:pt-[88px]">
+    <main class="pt-[70px] md:pt-60px]">
         @yield('content')
     </main>
 

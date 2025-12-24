@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
@@ -22,7 +23,7 @@ class Notification extends Model
 
     public function markAllRead()
 {
-    Notification::where('user_id', auth()->id())
+    Notification::where('user_id', Auth::id())
         ->where('is_read', 0)
         ->update(['is_read' => 1]);
 
