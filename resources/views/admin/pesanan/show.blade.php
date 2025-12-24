@@ -9,7 +9,11 @@
                class="text-[#700207] hover:text-[#A83F3F] font-medium transition flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm">
                 <i class="fas fa-arrow-left"></i> Kembali
             </a>
-            <span class="text-sm text-gray-500">ID Transaksi: #{{ $pesanan->id }}</span>
+            <span class="text-sm text-gray-500">Kode Transaksi: #{{ $pesanan->kode_transaksi ?? $pesanan->id}}</span>
+
+            <a href="{{ route('admin.pesanan.cetak', $pesanan->id) }}" target="_blank" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+            <i class="fas fa-print"></i> Cetak Resi
+        </a>
         </div>
 
         @if (session('success'))

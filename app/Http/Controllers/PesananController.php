@@ -130,4 +130,12 @@ class PesananController extends Controller
             return redirect()->back()->with('error', 'Gagal membatalkan pesanan.');
         }
     }
+
+    public function cetak($id)
+    {
+        // Ambil data transaksi beserta detail produk dan user
+        $transaksi = \App\Models\Transaksi::with(['user', 'detailTransaksi.produk'])->findOrFail($id);
+
+        return view('admin.pesanan.cetak', compact('transaksi'));
+    }
 }

@@ -35,7 +35,7 @@
                         
                         {{-- 1. ID & Tanggal --}}
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-bold text-gray-900">#{{ $item->id }}</div>
+                            <div class="text-sm font-bold text-gray-900">#{{ $item->kode_transaksi ?? $item->id }}</div>
                             <div class="text-xs text-gray-500 mt-1">{{ $item->created_at->format('d M Y') }}</div>
                             <div class="text-xs text-gray-400">{{ $item->created_at->format('H:i') }} WIB</div>
                         </td>

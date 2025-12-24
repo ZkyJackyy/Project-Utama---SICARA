@@ -24,7 +24,7 @@
             {{-- Header --}}
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-[#5C0A0A]">
-                    Pesanan #{{ $item->id }}
+                    Pesanan #{{ $item->kode_transaksi ?? $item->id }}
                 </h2>
 
                 {{-- Status Badge --}}

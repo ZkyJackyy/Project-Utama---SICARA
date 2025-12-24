@@ -144,6 +144,9 @@ Route::get('/api/provinces', [RajaOngkirController::class, 'getProvinces']);
 Route::get('/api/cities/{provinceId}', [RajaOngkirController::class, 'getCities']);
 Route::post('/api/ongkir', [RajaOngkirController::class, 'checkOngkir']);
 
+// Route Cetak Resi
+Route::get('/admin/pesanan/{id}/cetak', [PesananController::class, 'cetak'])->name('admin.pesanan.cetak');
+
 
 
 
