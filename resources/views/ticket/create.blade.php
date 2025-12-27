@@ -27,11 +27,11 @@
                         <i class="fa fa-phone"></i>
                     </div>
                     <div>
-                        <p class="text-xs text-red-200">Hotline</p>
-                        <p class="font-bold">+62 812-3456-7890</p>
+                        <p class="text-xs text-red-200">Owner</p>
+                        <p class="font-bold">+62 812-6887-9898</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-4 bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/10">
+                {{-- <div class="flex items-center gap-4 bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/10">
                     <div class="w-10 h-10 rounded-full bg-white text-[#700207] flex items-center justify-center">
                         <i class="fa fa-envelope"></i>
                     </div>
@@ -39,7 +39,7 @@
                         <p class="text-xs text-red-200">Email</p>
                         <p class="font-bold">support@daracake.com</p>
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
 

@@ -147,6 +147,7 @@ Route::post('/api/ongkir', [RajaOngkirController::class, 'checkOngkir']);
 // Route Cetak Resi
 Route::get('/admin/pesanan/{id}/cetak', [PesananController::class, 'cetak'])->name('admin.pesanan.cetak');
 
+Route::get('/laporan/pdf', [LaporanController::class, 'exportPdf'])->name('laporan.pdf');
 
 
 

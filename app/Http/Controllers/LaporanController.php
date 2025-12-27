@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
@@ -68,5 +69,43 @@ class LaporanController extends Controller
             'transaksi',
             'pemasukanTotalDariFilter' // <--- Variabel baru untuk footer
         ));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        // 1. Logika Query (Copy dari method index kamu, atau buat private function biar rapi)
+        $query = Transaksi::query()->where('status', 'selesai'); // Contoh filter status selesai
+
+        // Filter Tanggal
+        if ($request->has('tanggal') && $request->tanggal != '') {
+            $query->whereDate('created_at', $request->tanggal);
+        }
+
+        // Filter Bulan
+        if ($request->has('bulan') && $request->bulan != '') {
+            $query->whereMonth('created_at', $request->bulan);
+        }
+
+        // Filter Tahun
+        if ($request->has('tahun') && $request->tahun != '') {
+            $query->whereYear('created_at', $request->tahun);
+        }
+
+        // 2. Ambil Datanya (Pakai get() bukan paginate())
+        $transaksi = $query->latest()->get();
+        
+        // Hitung total untuk ditampilkan di PDF
+        $totalPendapatan = $transaksi->sum('total');
+
+        // 3. Load View PDF
+        // Kita set kertas A4 dan orientasi Potrait (tegak)
+        $pdf = Pdf::loadView('admin.laporan.pdf_view', [
+            'transaksi' => $transaksi,
+            'totalPendapatan' => $totalPendapatan,
+            'filter' => $request->all() // Mengirim info filter untuk judul
+        ])->setPaper('a4', 'portrait');
+
+        // 4. Download file
+        return $pdf->download('Laporan-Penjualan-'.date('d-m-Y').'.pdf');
     }
 }
