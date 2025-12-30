@@ -74,8 +74,19 @@
                         {{ $produk->nama_produk }}
                     </h3>
 
-                    {{-- Spacer --}}
-                    <div class="flex-grow"></div>
+                    {{-- Spacer & Peringatan Stok Menipis --}}
+                    <div class="flex-grow mb-2">
+                        {{-- PERBAIKAN DI SINI: Logika if yang benar --}}
+                        @if ($produk->stok < 5 && $produk->stok > 0)
+                            <p class="text-xs font-bold text-red-600 animate-pulse flex items-center gap-1 mt-1">
+                                <i class="fas fa-exclamation-circle"></i> Stok Sedikit!
+                            </p>
+                        @elseif ($produk->stok == 0)
+                             <p class="text-xs font-bold text-gray-500 mt-1">
+                                Stok Habis
+                            </p>
+                        @endif
+                    </div>
 
                     {{-- Garis Pemisah --}}
                     <div class="w-full h-px bg-gray-100 my-3 md:my-4"></div>

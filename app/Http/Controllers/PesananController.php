@@ -38,32 +38,48 @@ class PesananController extends Controller
     // =======================
     public function updateStatus(Request $request, $id)
     {
-        $request->validate([
-            'status' => 'required|string',
-        ]);
-
         $pesanan = Transaksi::findOrFail($id);
 
-        if ($pesanan->status == 'Dibatalkan') {
-            return redirect()->route('admin.pesanan.show', $pesanan->id)
-                             ->with('error', 'Status pesanan yang sudah dibatalkan tidak dapat diubah.');
-        }
-
-        $pesanan->status = $request->status;
-        $pesanan->save();
-
-        // =======================
-        // NOTIFIKASI KE CUSTOMER
-        // =======================
-        Notification::create([
-            'user_id'       => $pesanan->user_id,
-            'transaksi_id'  => $pesanan->id,
-            'judul'         => 'Status Pesanan Diperbarui',
-            'pesan'         => 'Status pesanan #' . $pesanan->id . ' telah berubah menjadi: ' . $request->status,
+        // Validasi
+        $request->validate([
+            'status' => 'required|string',
+            'nomor_resi' => 'nullable|string', // Resi opsional (wajib jika Dikirim, dihandle logic bawah)
         ]);
 
-        return redirect()->route('admin.pesanan.show', $pesanan->id)
-                         ->with('success', 'Status pesanan berhasil diperbarui!');
+        // Cek jika Admin pilih "Dikirim" tapi lupa isi resi (Khusus pengiriman Ekspedisi)
+        if ($request->status == 'Dikirim' && empty($request->nomor_resi)) {
+            // Cek dulu apakah ini metode pickup atau shipping
+            if (!str_contains(strtoupper($pesanan->shipping_method), 'AMBIL')) {
+                // Jika bukan Pickup, wajib isi resi/kurir
+                return back()->with('error', 'Harap masukkan Nomor Resi atau Nama Kurir untuk status Dikirim.');
+            }
+        }
+
+        // Update Data
+        $pesanan->status = $request->status;
+        
+        // Simpan resi jika ada inputan
+        if ($request->filled('nomor_resi')) {
+            $pesanan->nomor_resi = $request->nomor_resi;
+        }
+
+        $pesanan->save();
+
+        // Buat Notifikasi ke Customer
+        $pesanNotif = "Status pesanan #{$pesanan->kode_transaksi} diperbarui menjadi: {$request->status}.";
+        
+        if ($request->status == 'Dikirim' && $pesanan->nomor_resi) {
+            $pesanNotif .= " Info Pengiriman: {$pesanan->nomor_resi}";
+        }
+
+        Notification::create([
+            'user_id'      => $pesanan->user_id,
+            'transaksi_id' => $pesanan->id,
+            'judul'        => 'Update Status Pesanan',
+            'pesan'        => $pesanNotif,
+        ]);
+
+        return back()->with('success', 'Status berhasil diperbarui!');
     }
 
     // =======================
@@ -137,5 +153,16 @@ class PesananController extends Controller
         $transaksi = \App\Models\Transaksi::with(['user', 'detailTransaksi.produk'])->findOrFail($id);
 
         return view('admin.pesanan.cetak', compact('transaksi'));
+    }
+
+    public function terimaPesanan($id)
+    {
+        // Pastikan hanya user pemilik pesanan yang bisa akses
+        $pesanan = Transaksi::where('user_id', Auth::id())->findOrFail($id);
+
+        // Update status jadi Selesai
+        $pesanan->update(['status' => 'Selesai']);
+
+        return back()->with('success', 'Terima kasih! Pesanan telah selesai. Silakan beri ulasan.');
     }
 }

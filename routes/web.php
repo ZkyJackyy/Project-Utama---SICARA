@@ -52,6 +52,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
     Route::post('/keuangan', [KeuanganController::class, 'store'])->name('keuangan.store');
+    Route::get('/admin/api/notifications', [NotificationController::class, 'getNewOrders'])->name('admin.api.notifications');
 });
 
 
@@ -116,6 +117,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('customer.pesanan.index');
     Route::put('/pesanan-saya/{transaksi}/batal', [App\Http\Controllers\PesananController::class, 'batalPesanan'])
         ->name('customer.pesanan.batal');
+    // Di dalam group middleware auth customer
+    Route::put('/pesanan/{id}/terima', [PesananController::class, 'terimaPesanan'])->name('customer.pesanan.terima');
 });
 
 

@@ -19,11 +19,11 @@ class ProductController extends Controller
 
         // 2. Pesanan Baru (URGENT: Status 'Menunggu Konfirmasi')
         // Logika: Ini adalah angka notifikasi yang membutuhkan tindakan Admin segera.
-        $pesananBaru = Transaksi::where('status', 'Menunggu Konfirmasi')->count();
+        $pesananBaru = Transaksi::whereIn('status', ['Menunggu Konfirmasi', 'Akan Diproses'])->count();
 
         // 3. Pesanan Aktif (Sedang Dapur/Proses)
         // Logika: Ini pesanan yang sudah oke, tinggal dibuat/dikirim.
-        $pesananDiproses = Transaksi::whereIn('status', ['Akan Diproses', 'Diproses'])->count();
+        $pesananDiproses = Transaksi::where('status', 'Diproses')->count();
 
         // 4. Total Stok Produk (KECUALI Custom Cake ID 23)
         // Logika: Custom cake stoknya 999 (dummy), jadi harus dibuang dari hitungan agar data akurat.
@@ -141,8 +141,7 @@ class ProductController extends Controller
     {
         $idProdukKustom = 23;
         $products = Product::query()
-            ->where('id', '!=', $idProdukKustom) // 1. Jangan tampilkan kue kustom
-            ->where('stok', '>', 0)              // 2. Pastikan stok ada
+            ->where('id', '!=', $idProdukKustom) // 1. Jangan tampilkan kue kustom              // 2. Pastikan stok ada
             ->withSum('detailTransaksi as total_terjual', 'jumlah') // 3. Hitung total 'jumlah' dari tabel detail_transaksi
             ->orderByDesc('total_terjual')       // 4. Urutkan dari yang paling banyak terjual
             ->take(3)                            // 5. Ambil 3 atau 4 produk teratas
@@ -153,7 +152,6 @@ class ProductController extends Controller
         // fallback ke produk terbaru agar tidak kosong
         if ($products->isEmpty() || $products->sum('total_terjual') == 0) {
             $products = Product::where('id', '!=', $idProdukKustom)
-                ->where('stok', '>', 0)
                 ->latest()
                 ->take(3)
                 ->get();
@@ -166,7 +164,7 @@ class ProductController extends Controller
     {
         // Ambil semua produk, urutkan dari yang terbaru, dan gunakan paginasi
         // Paginate(8) berarti 8 produk per halaman
-        $products = Product::where('stok', '>', 0)->where('id', '!=', 23)->latest()->paginate(8);
+        $products = Product::where('id', '!=', 23)->latest()->paginate(8);
         $categories = Jenis::all();
 
         // Kirim data products ke view

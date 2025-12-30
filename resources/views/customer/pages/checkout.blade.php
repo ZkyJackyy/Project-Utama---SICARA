@@ -139,7 +139,19 @@
 
                             <div class="mt-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Lengkap (Jalan, No Rumah, RT/RW)</label>
-                                <textarea name="shipping_address" id="shipping_address" rows="3" class="w-full border-gray-300 rounded-lg focus:ring-[#700207] focus:border-[#700207]" required placeholder="Jl. Merpati No. 10..."></textarea>
+                                <textarea 
+                                    name="shipping_address" 
+                                    id="shipping_address" 
+                                    rows="3" 
+                                    class="w-full border-gray-300 rounded-lg focus:ring-[#700207] focus:border-[#700207]" 
+                                    required 
+                                    placeholder="Contoh: Jl. Merpati No. 10, Kel. Air Tawar...">{{ Auth::user()->alamat ?? '' }}</textarea>
+                                    
+                                @if(empty(Auth::user()->alamat))
+                                    <p class="text-xs text-yellow-600 mt-1">
+                                        <i class="fas fa-info-circle"></i> Anda belum mengatur alamat di profil.
+                                    </p>
+                                @endif
                             </div>
                         </div>
 
@@ -211,8 +223,8 @@
                             {{-- QRIS --}}
                             <div id="qris-container" class="hidden animate-fade-in-down bg-gray-50 rounded-xl border border-gray-200 p-4 text-center">
                                 <p class="text-xs font-medium text-gray-900 mb-2">Scan QRIS</p>
-                                <img src="{{ asset('gambar/qris.jpg') }}" class="w-32 h-32 object-contain mx-auto border border-gray-200 rounded-lg">
-                                <a href="{{ asset('gambar/qris.jpg') }}" download class="text-[10px] text-[#700207] hover:underline mt-2 block">Download QRIS</a>
+                                <img src="{{ asset('gambar/qris.jpeg') }}" class="w-60 h-60 object-contain mx-auto border border-gray-200 rounded-lg">
+                                <a href="{{ asset('gambar/qris.jpeg') }}" download class="text-[10px] text-[#700207] hover:underline mt-2 block">Download QRIS</a>
                             </div>
 
                             {{-- Upload Bukti --}}

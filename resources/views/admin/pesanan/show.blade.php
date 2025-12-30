@@ -141,8 +141,11 @@
                         @method('PUT')
                         
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Update Status Pesanan</label>
-                        <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:ring-[#700207] focus:border-[#700207]">
-                            @foreach(['Menunggu Konfirmasi', 'Akan Diproses', 'Diproses', 'Selesai', 'Dibatalkan'] as $statusOption)
+                        
+                        {{-- Dropdown Status --}}
+                        <select name="status" id="status-select" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:ring-[#700207] focus:border-[#700207]">
+                            {{-- Tambahkan status 'Dikirim' dan 'Siap Diambil' di array ini --}}
+                            @foreach(['Menunggu Konfirmasi', 'Akan Diproses', 'Diproses', 'Siap Diambil', 'Dikirim', 'Selesai', 'Dibatalkan'] as $statusOption)
                                 <option value="{{ $statusOption }}" 
                                     {{ $pesanan->status == $statusOption ? 'selected' : '' }}
                                     {{ ($pesanan->status == 'Selesai' || $pesanan->status == 'Dibatalkan') ? 'disabled' : '' }}>
@@ -150,6 +153,15 @@
                                 </option>
                             @endforeach
                         </select>
+
+                        {{-- Input Resi (Hidden by default) --}}
+                        <div id="resi-container" class="hidden mb-4 animate-fade-in-down">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Nomor Resi / Nama Kurir</label>
+                            <input type="text" name="nomor_resi" value="{{ $pesanan->nomor_resi }}" 
+                                placeholder="Contoh: JNE-88881234 atau 'Kurir Toko (Ujang)'"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#700207] focus:border-[#700207]">
+                            <p class="text-[10px] text-gray-400 mt-1">*Wajib diisi untuk pengiriman ekspedisi</p>
+                        </div>
 
                         <button type="submit" 
                             class="w-full bg-[#700207] hover:bg-[#5a0105] text-white font-bold py-3 rounded-lg transition shadow-lg 
@@ -198,4 +210,23 @@
         </div>
     </div>
 </div>
+{{-- Script Toggle Resi --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusSelect = document.getElementById('status-select');
+        const resiContainer = document.getElementById('resi-container');
+
+        function toggleResi() {
+            if (statusSelect.value === 'Dikirim') {
+                resiContainer.classList.remove('hidden');
+            } else {
+                resiContainer.classList.add('hidden');
+            }
+        }
+
+        statusSelect.addEventListener('change', toggleResi);
+        toggleResi(); // Cek saat halaman dimuat
+    });
+</script>
+
 @endsection

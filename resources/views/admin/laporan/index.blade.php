@@ -26,7 +26,7 @@
         {{-- 1. Pendapatan Bersih --}}
         <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start justify-between">
             <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pendapatan Bersih</p>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pendapatan</p>
                 <h3 class="text-xl font-bold text-gray-900 mt-1">
                     Rp {{ number_format($totalPendapatan, 0, ',', '.') }}
                 </h3>

@@ -52,6 +52,22 @@
     <div class="flex justify-between mb-8 gap-8">
         <div class="w-1/2">
             <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Penerima</h3>
+            {{-- Check if it is Pickup --}}
+            @if(str_contains(strtoupper($transaksi->shipping_method), 'AMBIL') || str_contains(strtoupper($transaksi->shipping_method), 'PICKUP'))
+                <p class="font-bold text-gray-800">AMBIL DI TOKO</p>
+                <p class="text-xs text-gray-500 italic mt-1">(Pickup)</p>
+            @else
+                {{-- Shipping --}}
+                <p class="font-bold text-gray-800">{{ $transaksi->shipping_method }}</p>
+                
+                {{-- Use nomor_resi if available --}}
+                @if($transaksi->nomor_resi)
+                    <p class="text-sm text-gray-600 mt-1">Resi: <span class="font-mono font-bold">{{ $transaksi->nomor_resi }}</span></p>
+                @elseif($transaksi->tracking_number) 
+                    {{-- Fallback if you haven't fully migrated yet --}}
+                    <p class="text-sm text-gray-600 mt-1">Resi: <span class="font-mono font-bold">{{ $transaksi->tracking_number }}</span></p>
+                @endif
+            @endif
             <p class="font-bold text-lg text-gray-800">{{ $transaksi->user->name }}</p>
             <p class="text-sm text-gray-600 mt-1 leading-relaxed">
                 {{ $transaksi->shipping_address ?? 'Alamat tidak tersedia' }}
