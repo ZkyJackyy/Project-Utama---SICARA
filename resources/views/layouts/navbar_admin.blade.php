@@ -6,13 +6,13 @@
     <title>Admin Dashboard - Dara Cake</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    {{-- Alpine.js Wajib Ada --}}
+    {{-- Alpine.js --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     {{-- FontAwesome --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
-    {{-- JQuery (Untuk AJAX Notifikasi) --}}
+    {{-- JQuery --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <style>
@@ -27,7 +27,7 @@
 
     <div class="flex h-screen">
 
-        {{-- OVERLAY GELAP (Backdrop) untuk Mobile --}}
+        {{-- Backdrop Mobile --}}
         <div x-show="sidebarOpen" 
              @click="sidebarOpen = false" 
              x-transition:enter="transition-opacity ease-linear duration-300"
@@ -39,7 +39,7 @@
              class="fixed inset-0 z-20 bg-black bg-opacity-50 md:hidden">
         </div>
 
-        {{-- SIDEBAR --}}
+        {{-- Sidebar --}}
         <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
                class="fixed inset-y-0 left-0 z-30 w-72 bg-gradient-to-b from-[#ECCFC3] to-[#4a0105] text-white shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0">
             
@@ -49,42 +49,32 @@
             </div>
 
             <nav class="mt-6 space-y-1 px-3">
-                {{-- Dashboard --}}
                 <a href="/dashboard-admin"
-                   class="flex items-center px-5 py-3 rounded-xl
-                   {{ request()->is('dashboard-admin') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                   class="flex items-center px-5 py-3 rounded-xl {{ request()->is('dashboard-admin') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
                     <i class="fas fa-tachometer-alt w-6"></i>
                     <span class="ml-3 text-lg font-medium">Dashboard</span>
                 </a>
 
-                {{-- Produk --}}
                 <a href="/daftar-produk"
-                   class="flex items-center px-5 py-3 rounded-xl
-                   {{ request()->is('daftar-produk') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                   class="flex items-center px-5 py-3 rounded-xl {{ request()->is('daftar-produk') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
                     <i class="fas fa-box-open w-6"></i>
                     <span class="ml-3 text-lg font-medium">Produk</span>
                 </a>
 
-                {{-- Kategori --}}
                 <a href="/category"
-                   class="flex items-center px-5 py-3 rounded-xl
-                   {{ request()->is('category') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                   class="flex items-center px-5 py-3 rounded-xl {{ request()->is('category') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
                     <i class="fas fa-tags w-6"></i>
                     <span class="ml-3 text-lg font-medium">Kategori</span>
                 </a>
 
-                {{-- Pesanan --}}
                 <a href="{{ route('admin.pesanan.index') }}"
-                   class="relative flex items-center px-5 py-3 rounded-xl
-                   {{ request()->is('admin/pesanan*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                   class="relative flex items-center px-5 py-3 rounded-xl {{ request()->is('admin/pesanan*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
                     <i class="fas fa-box w-6"></i>
                     <span class="ml-3 text-lg font-medium">Pesanan</span>
                 </a>
 
-                {{-- Layanan Bantuan --}}
                 <a href="{{ route('tickets.index') }}"
-                   class="relative flex items-center px-5 py-3 rounded-xl transition-all duration-200
-                   {{ request()->routeIs('tickets*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10 hover:translate-x-1' }}">
+                   class="relative flex items-center px-5 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('tickets*') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10 hover:translate-x-1' }}">
                     <i class="fas fa-headset w-6"></i>
                     <span class="ml-3 text-lg font-medium">Layanan Bantuan</span>
                     
@@ -98,18 +88,14 @@
                     @endif
                 </a>
 
-                {{-- Laporan --}}
                 <a href="/laporan"
-                   class="flex items-center px-5 py-3 rounded-xl
-                   {{ request()->is('laporan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                   class="flex items-center px-5 py-3 rounded-xl {{ request()->is('laporan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
                     <i class="fas fa-chart-line w-6"></i>
                     <span class="ml-3 text-lg font-medium">Laporan Penjualan</span>
                 </a>
 
-                {{-- Keuangan --}}
                 <a href="/keuangan"
-                   class="flex items-center px-5 py-3 rounded-xl
-                   {{ request()->is('keuangan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
+                   class="flex items-center px-5 py-3 rounded-xl {{ request()->is('keuangan') ? 'bg-[#4a0105] shadow-md text-white' : 'text-gray-200 hover:bg-white/10' }}">
                     <i class="fas fa-file-invoice-dollar w-6"></i>
                     <span class="ml-3 text-lg font-medium">Laporan Keuangan</span>
                 </a>
@@ -119,27 +105,23 @@
         <div class="flex-1 flex flex-col overflow-hidden">
             <header class="flex justify-between items-center px-6 py-4 bg-white shadow-lg border-b border-[#ECCFC3]">
                 <div class="flex items-center">
-                    {{-- TOMBOL HAMBURGER --}}
                     <button @click="sidebarOpen = true" class="text-gray-600 focus:outline-none md:hidden hover:text-[#4a0105]">
                         <i class="fas fa-bars text-2xl"></i>
                     </button>
-                    
                     <h1 class="text-2xl font-bold text-gray-700 ml-4">Dashboard</h1>
                 </div>
 
                 <div class="flex items-center gap-6">
                     
-                    {{-- === NOTIFIKASI LONCENG === --}}
+                    {{-- Notifikasi Lonceng --}}
                     <div class="relative" id="notif-container">
                         <button id="notif-btn" class="relative p-2 text-gray-500 hover:text-[#700207] transition focus:outline-none">
                             <i class="fas fa-bell text-xl"></i>
-                            {{-- Badge Merah --}}
                             <span id="notif-badge" class="hidden absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-pulse border border-white">
                                 0
                             </span>
                         </button>
 
-                        {{-- Dropdown Notif --}}
                         <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 overflow-hidden origin-top-right transition-all duration-200">
                             <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
                                 <h3 class="text-sm font-bold text-gray-800">Pesanan Baru</h3>
@@ -153,9 +135,8 @@
                             </a>
                         </div>
                     </div>
-                    {{-- === END NOTIFIKASI === --}}
 
-                    {{-- PROFIL ADMIN --}}
+                    {{-- Profil Admin --}}
                     <div x-data="{ dropdownOpen: false }" class="relative">
                         <button @click="dropdownOpen = !dropdownOpen" class="flex items-center space-x-3 focus:outline-none">
                             <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Admin"
@@ -178,13 +159,6 @@
                                 <p class="text-sm font-bold text-gray-800">Admin Dara</p>
                                 <p class="text-xs text-gray-500">Administrator</p>
                             </div>
-
-                            {{-- <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#700207] transition">
-                                <i class="far fa-user mr-2 w-4"></i> Profil
-                            </a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#700207] transition">
-                                <i class="fas fa-cog mr-2 w-4"></i> Pengaturan
-                            </a> --}}
                             
                             <div class="border-t border-gray-100 my-1"></div>
 
@@ -206,51 +180,25 @@
         </div>
     </div>
 
-    {{-- AUDIO NOTIFIKASI --}}
-    <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-
-    {{-- SCRIPT AJAX NOTIFIKASI --}}
 <script>
 $(document).ready(function() {
     
-    // === 1. SETUP VARIABEL ===
-    let lastCount = 0;
-    let isFirstLoad = true; 
-    
+    // Variabel elemen UI
     const notifBadge = $('#notif-badge');
     const notifList = $('#notif-list');
     const notifCountText = $('#notif-count-text');
-    
-    // Pastikan ID audio benar di HTML: <audio id="notif-sound" ...>
-    const notifSound = document.getElementById('notif-sound');
 
-    // === 2. TRIK AGAR SUARA BISA BUNYI (BROWSER POLICY) ===
-    // Browser melarang suara otomatis. Kita "pancing" user klik sekali di mana saja
-    // untuk membuka izin suara.
-    $(document).one('click', function() {
-        if(notifSound) {
-            notifSound.play().then(() => {
-                notifSound.pause();
-                notifSound.currentTime = 0;
-            }).catch((e) => { console.log("Audio unlock failed yet"); });
-        }
-    });
-
-    // === 3. FUNGSI UTAMA AJAX ===
     function fetchNotifications() {
-        // Cek Console Log untuk memastikan fungsi ini jalan tiap 10 detik
-        // console.log("Mengecek notifikasi..."); 
-
         $.ajax({
             url: "{{ route('admin.api.notifications') }}", 
             method: "GET",
             dataType: "json",
-            cache: false, // <--- PENTING: Mencegah browser mengambil data lama
+            cache: false, // Mencegah browser mengambil cache
             success: function(response) {
-                const count = parseInt(response.count); // Pastikan angka integer
+                const count = parseInt(response.count);
                 const orders = response.orders;
 
-                // A. Update Tampilan Badge (Merah)
+                // Update UI Badge
                 if (count > 0) {
                     notifBadge.text(count).removeClass('hidden');
                     notifCountText.text(count + ' Menunggu');
@@ -259,33 +207,7 @@ $(document).ready(function() {
                     notifCountText.text('Tidak ada baru');
                 }
 
-                // B. Logika Bunyi Lonceng
-                // Bunyi JIKA: Bukan loading pertama DAN jumlah bertambah dari sebelumnya
-                if (!isFirstLoad && count > lastCount) {
-                    console.log("Pesanan baru terdeteksi! Membunyikan suara...");
-                    try { 
-                        notifSound.currentTime = 0; 
-                        let playPromise = notifSound.play();
-                        
-                        if (playPromise !== undefined) {
-                            playPromise.then(_ => {
-                                // Audio started playing!
-                            }).catch(error => {
-                                console.warn("Browser memblokir autoplay. Klik halaman sekali agar suara aktif.");
-                            });
-                        }
-                    } catch(e) { 
-                        console.error("Gagal memutar audio:", e); 
-                    }
-                }
-
-                // Update variabel pembanding
-                lastCount = count;
-                
-                // Matikan flag load pertama setelah eksekusi pertama sukses
-                isFirstLoad = false; 
-
-                // C. Update List Dropdown
+                // Update Isi Dropdown
                 let html = '';
                 if (Array.isArray(orders) && orders.length > 0) {
                     orders.forEach(order => {
@@ -330,21 +252,22 @@ $(document).ready(function() {
         });
     }
 
-    // === 4. EVENT HANDLER TOMBOL ===
+    // Toggle Dropdown
     $('#notif-btn').click(function(e) {
         e.stopPropagation();
         $('#notif-dropdown').toggleClass('hidden');
     });
 
+    // Tutup dropdown jika klik di luar
     $(document).click(function(e) {
         if (!$(e.target).closest('#notif-container').length) {
             $('#notif-dropdown').addClass('hidden');
         }
     });
 
-    // === 5. JALANKAN ===
-    fetchNotifications(); // Jalan saat halaman dibuka
-    setInterval(fetchNotifications, 10000); // Jalan otomatis setiap 10 detik
+    // Jalankan Polling
+    fetchNotifications(); 
+    setInterval(fetchNotifications, 10000); 
 });
 </script>
 
