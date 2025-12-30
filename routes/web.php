@@ -151,6 +151,7 @@ Route::post('/api/ongkir', [RajaOngkirController::class, 'checkOngkir']);
 Route::get('/admin/pesanan/{id}/cetak', [PesananController::class, 'cetak'])->name('admin.pesanan.cetak');
 
 Route::get('/laporan/pdf', [LaporanController::class, 'exportPdf'])->name('laporan.pdf');
+Route::get('/keuangan/pdf', [KeuanganController::class, 'downloadPdf'])->name('keuangan.pdf');
 
 
 
