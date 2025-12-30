@@ -31,6 +31,12 @@ class ProductController extends Controller
             ->where('id', '!=', 23) // <-- ID Custom Cake dikecualikan
             ->sum('stok');
 
+        $stokMenipisCount = Product::whereNull('deleted_at')
+        ->where('id', '!=', 23) // Kecualikan custom cake
+        ->where('stok', '<', 10) // Cari yang stok di bawah 5
+        ->where('stok', '>', 0) // Tapi jangan hitung yang sudah 0 (Habis)
+        ->count();
+
         // 5. Produk Terjual (Hanya dari pesanan Selesai)
         $produkTerjual = DetailTransaksi::whereHas('transaksi', function ($query) {
             $query->where('status', 'Selesai');
@@ -47,6 +53,7 @@ class ProductController extends Controller
             'pesananBaru',
             'pesananDiproses',
             'totalStok',
+            'stokMenipisCount',
             'produkTerjual',
             'pesananTerbaru'
         ));

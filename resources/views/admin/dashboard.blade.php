@@ -87,14 +87,18 @@
                     <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Inventory Total</p>
                     <h3 class="text-2xl font-bold text-gray-800">{{ number_format($totalStok) }} <span class="text-base font-normal text-gray-400">unit</span></h3>
                     <div class="flex-grow mb-2">
-                        {{-- PERBAIKAN DI SINI: Logika if yang benar --}}
-                        @if ($totalStok < 5 && $totalStok > 0)
+                        {{-- Cek variabel jumlah produk yang menipis --}}
+                        @if ($stokMenipisCount > 0)
                             <p class="text-xs font-bold text-red-600 animate-pulse flex items-center gap-1 mt-1">
-                                <i class="fas fa-exclamation-circle"></i> Stok Menipis!
+                                <i class="fas fa-exclamation-circle"></i> {{ $stokMenipisCount }} Produk Stok Menipis!
                             </p>
                         @elseif ($totalStok == 0)
-                             <p class="text-xs font-bold text-gray-500 mt-1">
-                                Stok Habis
+                            <p class="text-xs font-bold text-gray-500 mt-1">
+                                Stok Kosong Melompong
+                            </p>
+                        @else
+                            <p class="text-xs text-green-600 mt-1">
+                                Stok Aman
                             </p>
                         @endif
                     </div>
