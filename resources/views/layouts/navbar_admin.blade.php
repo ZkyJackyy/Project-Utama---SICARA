@@ -213,27 +213,44 @@
 <script>
 $(document).ready(function() {
     
-    // Variabel state
+    // === 1. SETUP VARIABEL ===
     let lastCount = 0;
-    let isFirstLoad = true;
-
+    let isFirstLoad = true; 
+    
     const notifBadge = $('#notif-badge');
     const notifList = $('#notif-list');
     const notifCountText = $('#notif-count-text');
+    
+    // Pastikan ID audio benar di HTML: <audio id="notif-sound" ...>
     const notifSound = document.getElementById('notif-sound');
 
+    // === 2. TRIK AGAR SUARA BISA BUNYI (BROWSER POLICY) ===
+    // Browser melarang suara otomatis. Kita "pancing" user klik sekali di mana saja
+    // untuk membuka izin suara.
+    $(document).one('click', function() {
+        if(notifSound) {
+            notifSound.play().then(() => {
+                notifSound.pause();
+                notifSound.currentTime = 0;
+            }).catch((e) => { console.log("Audio unlock failed yet"); });
+        }
+    });
+
+    // === 3. FUNGSI UTAMA AJAX ===
     function fetchNotifications() {
+        // Cek Console Log untuk memastikan fungsi ini jalan tiap 10 detik
+        // console.log("Mengecek notifikasi..."); 
+
         $.ajax({
             url: "{{ route('admin.api.notifications') }}", 
             method: "GET",
-            dataType: "json", // Pastikan response dianggap JSON
+            dataType: "json",
+            cache: false, // <--- PENTING: Mencegah browser mengambil data lama
             success: function(response) {
-                console.log("Data Notifikasi:", response); // Debugging: Cek di Console Browser
-
-                const count = response.count;
+                const count = parseInt(response.count); // Pastikan angka integer
                 const orders = response.orders;
 
-                // 1. Update Badge & Text
+                // A. Update Tampilan Badge (Merah)
                 if (count > 0) {
                     notifBadge.text(count).removeClass('hidden');
                     notifCountText.text(count + ' Menunggu');
@@ -242,30 +259,42 @@ $(document).ready(function() {
                     notifCountText.text('Tidak ada baru');
                 }
 
-                // 2. Logika Suara (Hanya jika nambah & bukan load pertama)
-                if (!isFirstLoad && count > lastCount && count > 0) {
+                // B. Logika Bunyi Lonceng
+                // Bunyi JIKA: Bukan loading pertama DAN jumlah bertambah dari sebelumnya
+                if (!isFirstLoad && count > lastCount) {
+                    console.log("Pesanan baru terdeteksi! Membunyikan suara...");
                     try { 
                         notifSound.currentTime = 0; 
-                        notifSound.play(); 
-                    } catch(e) { console.log("Audio dicegah browser"); }
+                        let playPromise = notifSound.play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise.then(_ => {
+                                // Audio started playing!
+                            }).catch(error => {
+                                console.warn("Browser memblokir autoplay. Klik halaman sekali agar suara aktif.");
+                            });
+                        }
+                    } catch(e) { 
+                        console.error("Gagal memutar audio:", e); 
+                    }
                 }
 
+                // Update variabel pembanding
                 lastCount = count;
+                
+                // Matikan flag load pertama setelah eksekusi pertama sukses
                 isFirstLoad = false; 
 
-                // 3. Update Dropdown List
+                // C. Update List Dropdown
                 let html = '';
-                
-                // Pastikan orders adalah array dan tidak kosong
                 if (Array.isArray(orders) && orders.length > 0) {
                     orders.forEach(order => {
-                        // Tentukan warna badge status biar cantik
                         let statusColor = 'bg-gray-100 text-gray-600';
                         if(order.status === 'Menunggu Konfirmasi') statusColor = 'bg-yellow-100 text-yellow-700';
                         if(order.status === 'Akan Diproses') statusColor = 'bg-blue-100 text-blue-700';
 
                         html += `
-                            <a href="${order.link}" class="block px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition group">
+                            <a href="${order.link}" class="block px-4 py-3 border-b border-gray-100 hover:bg-red-50 transition group">
                                 <div class="flex justify-between items-start">
                                     <div class="w-2/3">
                                         <p class="text-xs font-bold text-gray-800 group-hover:text-[#700207] truncate">
@@ -293,7 +322,6 @@ $(document).ready(function() {
                         </div>
                     `;
                 }
-                
                 notifList.html(html);
             },
             error: function(xhr, status, error) {
@@ -302,22 +330,21 @@ $(document).ready(function() {
         });
     }
 
-    // Toggle Dropdown
+    // === 4. EVENT HANDLER TOMBOL ===
     $('#notif-btn').click(function(e) {
         e.stopPropagation();
         $('#notif-dropdown').toggleClass('hidden');
     });
 
-    // Close Dropdown on Outside Click
     $(document).click(function(e) {
         if (!$(e.target).closest('#notif-container').length) {
             $('#notif-dropdown').addClass('hidden');
         }
     });
 
-    // Jalankan Polling
-    fetchNotifications(); 
-    setInterval(fetchNotifications, 10000); 
+    // === 5. JALANKAN ===
+    fetchNotifications(); // Jalan saat halaman dibuka
+    setInterval(fetchNotifications, 10000); // Jalan otomatis setiap 10 detik
 });
 </script>
 

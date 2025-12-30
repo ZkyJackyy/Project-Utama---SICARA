@@ -48,20 +48,21 @@ class CheckoutController extends Controller
     // 2. PROSES TRANSAKSI (DATABASE + WHATSAPP)
     public function proses(Request $request)
     {
-        // 1. VALIDASI INPUT
+        // 1. VALIDASI INPUT (Dilakukan Paling Awal)
         $request->validate([
-            'delivery_type'     => 'required|string', // shipping atau pickup
+            'delivery_type'     => 'required|in:shipping,pickup', // Pastikan isinya hanya shipping atau pickup
             'metode_pembayaran' => 'required|string',
             'selected_ids'      => 'required|string',
             'bukti_pembayaran'  => 'required_unless:metode_pembayaran,cod|image|mimes:jpeg,png,jpg|max:2048',
-
-            // Validasi Kondisional (Hanya wajib jika shipping)
+            
+            // Validasi Kondisional
             'shipping_address'  => 'required_if:delivery_type,shipping',
-            'shipping_cost'     => 'numeric', // Bisa 0
+            'shipping_cost'     => 'nullable|numeric', 
             'courier'           => 'nullable|string',
             'shipping_service'  => 'nullable|string',
         ]);
 
+        // Baru proses explode setelah validasi sukses
         $selectedIds = explode(',', $request->selected_ids);
 
         // 2. AMBIL ITEM KERANJANG
@@ -71,7 +72,7 @@ class CheckoutController extends Controller
             ->get();
 
         if ($cartItems->isEmpty()) {
-            return redirect()->route('keranjang.index')->with('error', 'Terjadi kesalahan data keranjang.');
+            return redirect()->route('keranjang.index')->with('error', 'Terjadi kesalahan data keranjang (Kosong).');
         }
 
         // 3. HITUNG SUBTOTAL PRODUK
@@ -80,17 +81,22 @@ class CheckoutController extends Controller
             return $harga * $item->jumlah;
         });
 
-        // 4. LOGIKA PENGIRIMAN VS PICKUP (PENTING DISINI)
+        // 4. LOGIKA PENGIRIMAN VS PICKUP
         if ($request->delivery_type == 'pickup') {
             // SETTING UNTUK AMBIL DI TOKO
             $ongkir = 0;
             $shippingMethodName = 'AMBIL DI TOKO (Pickup)';
-            // Kita set alamat statis agar database tidak error dan Admin tau
             $shippingAddress = 'Customer akan mengambil pesanan di Toko.';
         } else {
             // SETTING UNTUK EKSPEDISI
-            $ongkir = $request->shipping_cost;
-            $shippingMethodName = strtoupper($request->courier) . ' - ' . $request->shipping_service;
+            // Pastikan ongkir tidak null, jika null set 0 (default)
+            $ongkir = $request->shipping_cost ?? 0;
+            
+            // Pastikan kurir dan service tidak null
+            $kurir = $request->courier ? strtoupper($request->courier) : 'EKSPEDISI';
+            $service = $request->shipping_service ?? 'REGULAR';
+            
+            $shippingMethodName = "$kurir - $service";
             $shippingAddress = $request->shipping_address;
         }
 
@@ -108,7 +114,6 @@ class CheckoutController extends Controller
 
             $status = ($request->metode_pembayaran == 'cod') ? 'Menunggu Konfirmasi' : 'Akan Diproses';
 
-            // dd($request->all());
             // 5. SIMPAN TRANSAKSI KE DATABASE
             $transaksi = Transaksi::create([
                 'user_id'           => Auth::id(),
@@ -116,25 +121,26 @@ class CheckoutController extends Controller
                 'bukti_pembayaran'  => $buktiPath,
                 'total'             => $grandTotal,
                 'status'            => $status,
-                // Simpan data hasil logika di atas
                 'shipping_method'   => $shippingMethodName,
                 'shipping_cost'     => $ongkir,
                 'shipping_address'  => $shippingAddress,
             ]);
 
+            // Ambil Kode Transaksi (Refresh model untuk dapat data terbaru dari trigger/boot)
+            $transaksi->refresh();
+            $kodeOrder = $transaksi->kode_transaksi ?? $transaksi->id;
+
             $adaCustomCake = false;
 
-            // 6. SUSUN PESAN WHATSAPP (REVISED)
-            // Use standard double quotes and newlines (\n)
+            // 6. PERSIAPAN PESAN WHATSAPP
             $userName = Auth::user()->name;
-            $paymentMethod = strtoupper($request->metode_pembayaran);
+            $paymentMethod = strtoupper(str_replace('_', ' ', $request->metode_pembayaran));
             
             $waMessage = "Halo Admin DaraCake, saya baru saja membuat pesanan.\n\n";
-            $waMessage .= "🧾 *ID Pesanan:* #{$transaksi->id}\n";
+            $waMessage .= "🧾 *Kode Pesanan:* {$kodeOrder}\n";
             $waMessage .= "👤 *Nama:* {$userName}\n";
             $waMessage .= "💳 *Pembayaran:* {$paymentMethod}\n";
 
-            // Info Pengiriman
             if ($request->delivery_type == 'pickup') {
                 $waMessage .= "🏃 *Metode:* AMBIL SENDIRI (Pickup)\n";
             } else {
@@ -150,14 +156,13 @@ class CheckoutController extends Controller
             $waMessage .= "Subtotal: Rp {$formattedSubtotal}\n";
             $waMessage .= "Ongkir: Rp {$formattedOngkir}\n";
             $waMessage .= "*TOTAL: Rp {$formattedGrandTotal}*\n\n";
-
             $waMessage .= "*Detail Produk:*\n";
 
+            // 7. LOOP ITEM, SIMPAN DETAIL & KURANGI STOK
             foreach ($cartItems as $item) {
-                // ... (DetailTransaksi creation logic remains the same) ...
-                
                 $hargaFinal = $item->custom_price ?? $item->product->harga;
 
+                // Simpan Detail
                 DetailTransaksi::create([
                     'transaksi_id' => $transaksi->id,
                     'produk_id'    => $item->product_id,
@@ -166,18 +171,28 @@ class CheckoutController extends Controller
                     'catatan'      => $item->custom_deskripsi
                 ]);
 
-                // ... (Stock reduction logic remains the same) ...
+                // LOGIKA STOK (PENTING!)
                 if ($item->custom_deskripsi == null) {
-                    $product = \App\Models\Product::find($item->product_id); // Ensure Model is imported or use full path
-                    if ($product) {
-                        $product->stok -= $item->jumlah;
-                        $product->save();
+                    // Kunci baris produk untuk mencegah Race Condition (rebutan stok)
+                    $product = Product::lockForUpdate()->find($item->product_id);
+                    
+                    if (!$product) {
+                        throw new \Exception("Produk '{$item->product->nama_produk}' tidak ditemukan.");
                     }
+
+                    // Cek Apakah Stok Cukup?
+                    if ($product->stok < $item->jumlah) {
+                        throw new \Exception("Stok '{$product->nama_produk}' tidak mencukupi. Sisa: {$product->stok}");
+                    }
+
+                    // Kurangi Stok
+                    $product->stok -= $item->jumlah;
+                    $product->save();
                 } else {
                     $adaCustomCake = true;
                 }
 
-                // Add item to WA Message
+                // Tambah ke Text WA
                 $waMessage .= "- {$item->product->nama_produk} (x{$item->jumlah})\n";
                 if ($item->custom_deskripsi) {
                     $waMessage .= "  _Note: {$item->custom_deskripsi}_\n";
@@ -186,20 +201,28 @@ class CheckoutController extends Controller
 
             $waMessage .= "\nMohon diproses ya kak, terima kasih! 🙏";
 
-            // ... (Cart deletion and Commit remains the same) ...
-            
-            // 7. LOGIKA REDIRECT
+            // 8. HAPUS ITEM DARI KERANJANG
+            Keranjang::where('user_id', Auth::id())
+                ->whereIn('id', $selectedIds)
+                ->delete();
+
+            // COMMIT TRANSAKSI DB
+            DB::commit();
+
+            // 9. REDIRECT
             if ($adaCustomCake) {
                 $adminNumber = '62895611194900'; 
-                // CRITICAL FIX: Encode the entire message here
+                // Encode pesan untuk URL WA
                 $encodedMessage = urlencode($waMessage);
                 return redirect("https://wa.me/{$adminNumber}?text={$encodedMessage}"); 
             } else {
                 return redirect()->route('customer.pesanan.index')->with('success', 'Pesanan berhasil dibuat!');
             }
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('keranjang.index')->with('error', 'Error: ' . $e->getMessage());
+            // Redirect kembali dengan pesan error yang spesifik (misal: Stok Habis)
+            return redirect()->route('keranjang.index')->with('error', 'Gagal memproses pesanan: ' . $e->getMessage());
         }
     }
 }
