@@ -110,6 +110,8 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/custom-cake', [CustomCakeController::class, 'showCustomCakeForm'])->name('custom-cake.index');
     Route::post('/custom-cake/store', [CustomCakeController::class, 'store'])->name('custom-cake.store');
 Route::post('/keranjang/tambah-custom', [KeranjangController::class, 'tambahCustom'])->name('keranjang.tambahCustom');
+// Route Checkout Langsung (Beli Sekarang)
+Route::post('/checkout/direct', [CheckoutController::class, 'directCheckout'])->name('checkout.direct');
 });
 
 Route::middleware(['auth'])->group(function () {

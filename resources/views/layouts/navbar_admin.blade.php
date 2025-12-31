@@ -113,28 +113,39 @@
 
                 <div class="flex items-center gap-6">
                     
-                    {{-- Notifikasi Lonceng --}}
+                    {{-- === NOTIFIKASI LONCENG RESPONSIF === --}}
                     <div class="relative" id="notif-container">
+                        {{-- Tombol Lonceng --}}
                         <button id="notif-btn" class="relative p-2 text-gray-500 hover:text-[#700207] transition focus:outline-none">
                             <i class="fas fa-bell text-xl"></i>
+                            {{-- Badge Merah --}}
                             <span id="notif-badge" class="hidden absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-pulse border border-white">
                                 0
                             </span>
                         </button>
 
-                        <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 overflow-hidden origin-top-right transition-all duration-200">
+                        {{-- Dropdown Notif --}}
+                        {{-- PERUBAHAN: w-72 (Mobile) md:w-80 (Desktop) agar tidak kepotong di HP --}}
+                        <div id="notif-dropdown" class="hidden absolute right-0 mt-3 w-72 md:w-80 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 overflow-hidden origin-top-right transition-all duration-200 ring-1 ring-black ring-opacity-5">
+                            
+                            {{-- Header Dropdown --}}
                             <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
                                 <h3 class="text-sm font-bold text-gray-800">Pesanan Baru</h3>
                                 <span id="notif-count-text" class="text-xs text-[#700207] font-semibold">0 Menunggu</span>
                             </div>
+
+                            {{-- List Item (Scrollable) --}}
                             <div id="notif-list" class="max-h-64 overflow-y-auto custom-scrollbar">
                                 <div class="p-4 text-center text-gray-500 text-xs">Memuat...</div>
                             </div>
-                            <a href="{{ route('admin.pesanan.index') }}" class="block text-center py-2 text-xs font-bold text-[#700207] bg-gray-50 hover:bg-red-50 transition border-t border-gray-100">
+
+                            {{-- Footer --}}
+                            <a href="{{ route('admin.pesanan.index') }}" class="block text-center py-3 text-xs font-bold text-[#700207] bg-gray-50 hover:bg-red-50 transition border-t border-gray-100">
                                 Lihat Semua Pesanan
                             </a>
                         </div>
                     </div>
+                    {{-- === END NOTIFIKASI === --}}
 
                     {{-- Profil Admin --}}
                     <div x-data="{ dropdownOpen: false }" class="relative">

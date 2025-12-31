@@ -73,50 +73,55 @@
                         </div>
                     @endif
 
-                    {{-- Form Beli --}}
-                    <form action="{{ route('keranjang.tambah', $product->id) }}" method="POST">
-                        @csrf
-                        <div class="flex items-center space-x-4 mb-4">
-                            <label for="quantity" class="font-semibold">Jumlah:</label>
-                            <div class="flex items-center border border-gray-300 rounded-lg">
-                                <button type="button" id="btn-minus" class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
-                                <input type="number" name="jumlah" id="quantity" value="1" min="1" max="{{ $product->stok }}" class="w-12 text-center border-y-0 border-x-0 text-gray-900 focus:ring-[#700207] focus:border-[#700207]">
-                                <button type="button" id="btn-plus" class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
-                            </div>
-                        </div>
+                    {{-- Form Aksi (Satu Form untuk Dua Tujuan) --}}
+<form action="{{ route('keranjang.tambah', $product->id) }}" method="POST">
+    @csrf
+    
+    {{-- PENTING: Input ini dibutuhkan oleh CheckoutController@directCheckout --}}
+    <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button type="submit" class="w-full bg-[#700207] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#4a0105] transition-colors duration-300 disabled:bg-gray-400 flex items-center justify-center" @if($product->stok <= 0) disabled @endif>
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                @if($product->stok <= 0) Stok Habis @else Tambah ke Keranjang @endif
-                            </button>
-                            {{-- Tombol Beli Sekarang (Logic Stok Habis -> WA) --}}
-                            @if($product->stok > 0)
-                                {{-- LOGIKA 1: STOK ADA (Normal) --}}
-                                <button type="submit" name="action" value="buy_now" 
-                                        class="w-full bg-transparent border border-[#700207] text-[#700207] font-bold py-3 px-6 rounded-lg hover:bg-red-50 transition-colors duration-300 flex items-center justify-center">
-                                    Beli Sekarang
-                                </button>
-                            @else
-                                {{-- LOGIKA 2: STOK HABIS (Redirect ke WA) --}}
-                                @php
-                                    // Ganti dengan nomor WhatsApp Admin (format 62...)
-                                    $adminNumber = '62895611194900'; 
-                                    
-                                    // Pesan otomatis
-                                    $pesan = "Halo Admin DaraCake, saya tertarik dengan produk *{$product->nama_produk}* tetapi stok di website habis. Apakah bisa Pre-Order atau restock kapan ya?";
-                                    
-                                    // Encode pesan agar URL valid
-                                    $waUrl = "https://wa.me/{$adminNumber}?text=" . urlencode($pesan);
-                                @endphp
+    {{-- Input Jumlah --}}
+    <div class="flex items-center space-x-4 mb-4">
+        <label for="quantity" class="font-semibold">Jumlah:</label>
+        <div class="flex items-center border border-gray-300 rounded-lg">
+            <button type="button" id="btn-minus" class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
+            <input type="number" name="jumlah" id="quantity" value="1" min="1" max="{{ $product->stok }}" class="w-12 text-center border-y-0 border-x-0 text-gray-900 focus:ring-[#700207] focus:border-[#700207]">
+            <button type="button" id="btn-plus" class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
+        </div>
+    </div>
 
-                                <a href="{{ $waUrl }}" target="_blank" 
-                                class="w-full bg-green-500 border border-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors duration-300 flex items-center justify-center gap-2">
-                                    <i class="fab fa-whatsapp text-lg"></i> Hubungi Admin (Stok Habis)
-                                </a>
-                            @endif
-                        </div>
-                    </form>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {{-- TOMBOL 1: TAMBAH KE KERANJANG --}}
+        {{-- Tombol ini akan mengikuti 'action' default pada tag <form> di atas (route keranjang.tambah) --}}
+        <button type="submit" 
+            class="w-full bg-[#700207] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#4a0105] transition-colors duration-300 disabled:bg-gray-400 flex items-center justify-center" 
+            @if($product->stok <= 0) disabled @endif>
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            @if($product->stok <= 0) Stok Habis @else Tambah ke Keranjang @endif
+        </button>
+
+        {{-- TOMBOL 2: BELI SEKARANG --}}
+        @if($product->stok > 0)
+            {{-- PERHATIKAN: Ada atribut 'formaction'. Ini akan membelokkan data ke route checkout.direct --}}
+            <button type="submit" 
+                    formaction="{{ route('checkout.direct') }}"
+                    class="w-full bg-transparent border border-[#700207] text-[#700207] font-bold py-3 px-6 rounded-lg hover:bg-red-50 transition-colors duration-300 flex items-center justify-center">
+                Beli Sekarang
+            </button>
+        @else
+            {{-- Link WA jika Stok Habis --}}
+            @php
+                $adminNumber = '62895611194900'; 
+                $pesan = "Halo Admin DaraCake, saya tertarik dengan produk *{$product->nama_produk}* tetapi stok di website habis...";
+                $waUrl = "https://wa.me/{$adminNumber}?text=" . urlencode($pesan);
+            @endphp
+            <a href="{{ $waUrl }}" target="_blank" 
+               class="w-full bg-green-500 border border-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors duration-300 flex items-center justify-center gap-2">
+                <i class="fab fa-whatsapp text-lg"></i> Hubungi Admin (Stok Habis)
+            </a>
+        @endif
+    </div>
+</form>
 
                 </div>
             </div>

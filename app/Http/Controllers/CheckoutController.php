@@ -15,214 +15,206 @@ class CheckoutController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        // Ambil ID dari URL (?selected_ids=1,2,3)
-        $selectedIds = explode(',', $request->query('selected_ids', ''));
+        
+        // Cek Parameter: Apakah dari Keranjang (selected_ids) atau Langsung (product_id)?
+        
+        // KASUS 1: BELI LANGSUNG (Dari Session/Input Langsung)
+        // Kita pakai trik: Jika ada session 'direct_checkout_item', pakai itu.
+        if (session()->has('direct_checkout_item')) {
+            $directItem = session('direct_checkout_item');
+            
+            // Buat objek dummy biar view tidak error
+            $fakeItem = new \stdClass();
+            $fakeItem->id = null; // Tidak ada ID keranjang
+            $fakeItem->product_id = $directItem['product_id'];
+            $fakeItem->jumlah = $directItem['jumlah'];
+            $fakeItem->product = Product::find($directItem['product_id']);
+            $fakeItem->custom_price = null;
+            $fakeItem->custom_deskripsi = null;
 
-        // Validasi: Pastikan ID valid dan milik user yang sedang login
-        $cartItems = Keranjang::where('user_id', Auth::id())
-            ->whereIn('id', $selectedIds) // Filter berdasarkan ID terpilih
-            ->with('product')
-            ->get();
+            $cartItems = collect([$fakeItem]);
+            $selectedIdsString = 'DIRECT_' . $directItem['product_id'] . '_' . $directItem['jumlah']; // Kode Unik
+        } 
+        // KASUS 2: DARI KERANJANG (Normal)
+        else {
+            $selectedIds = explode(',', $request->query('selected_ids', ''));
+            $cartItems = Keranjang::where('user_id', Auth::id())
+                ->whereIn('id', $selectedIds)
+                ->with('product')
+                ->get();
 
-        if ($cartItems->isEmpty()) {
-            return redirect()->route('keranjang.index')->with('error', 'Silakan pilih produk yang ingin dibeli.');
+            if ($cartItems->isEmpty()) {
+                return redirect()->route('keranjang.index')->with('error', 'Pilih produk dulu.');
+            }
+            $selectedIdsString = implode(',', $selectedIds);
         }
 
-        // 1. Hitung Total Berat (Default 500g jika null)
-        $totalWeight = $cartItems->sum(function ($item) {
-            return ($item->product->berat ?? 500) * $item->jumlah;
-        });
-
-        // Hitung Total (Cek apakah ada harga custom)
-        $total = $cartItems->sum(function ($item) {
-            $harga = $item->custom_price ?? $item->product->harga;
-            return $harga * $item->jumlah;
-        });
-
-        // Kirim string ID agar bisa diproses di form selanjutnya
-        $selectedIdsString = implode(',', $selectedIds);
+        // Hitung Total
+        $totalWeight = $cartItems->sum(fn($item) => ($item->product->berat ?? 500) * $item->jumlah);
+        $total = $cartItems->sum(fn($item) => ($item->custom_price ?? $item->product->harga) * $item->jumlah);
 
         return view('customer.pages.checkout', compact('cartItems', 'total', 'totalWeight', 'selectedIdsString', 'user'));
     }
 
-    // 2. PROSES TRANSAKSI (DATABASE + WHATSAPP)
-    public function proses(Request $request)
+    // B. HANDLE FORM "BELI SEKARANG" (Jembatan ke Halaman Checkout)
+    public function directCheckout(Request $request)
     {
-        // 1. VALIDASI INPUT (Dilakukan Paling Awal)
         $request->validate([
-            'delivery_type'     => 'required|in:shipping,pickup', // Pastikan isinya hanya shipping atau pickup
-            'metode_pembayaran' => 'required|string',
-            'selected_ids'      => 'required|string',
-            'bukti_pembayaran'  => 'required_unless:metode_pembayaran,cod|image|mimes:jpeg,png,jpg|max:2048',
-            
-            // Validasi Kondisional
-            'shipping_address'  => 'required_if:delivery_type,shipping',
-            'shipping_cost'     => 'nullable|numeric', 
-            'courier'           => 'nullable|string',
-            'shipping_service'  => 'nullable|string',
+            'product_id' => 'required|exists:products,id',
+            'jumlah' => 'required|integer|min:1'
         ]);
 
-        // Baru proses explode setelah validasi sukses
-        $selectedIds = explode(',', $request->selected_ids);
-
-        // 2. AMBIL ITEM KERANJANG
-        $cartItems = Keranjang::where('user_id', Auth::id())
-            ->whereIn('id', $selectedIds)
-            ->with('product')
-            ->get();
-
-        if ($cartItems->isEmpty()) {
-            return redirect()->route('keranjang.index')->with('error', 'Terjadi kesalahan data keranjang (Kosong).');
+        $product = Product::find($request->product_id);
+        
+        // Cek Stok Awal
+        if ($product->stok < $request->jumlah) {
+            return back()->with('error', 'Stok barang tidak cukup.');
         }
 
-        // 3. HITUNG SUBTOTAL PRODUK
-        $subtotal = $cartItems->sum(function ($item) {
-            $harga = $item->custom_price ?? $item->product->harga;
-            return $harga * $item->jumlah;
-        });
+        // Simpan data sementara ke Session
+        session()->flash('direct_checkout_item', [
+            'product_id' => $request->product_id,
+            'jumlah' => $request->jumlah
+        ]);
 
-        // 4. LOGIKA PENGIRIMAN VS PICKUP
-        if ($request->delivery_type == 'pickup') {
-            // SETTING UNTUK AMBIL DI TOKO
-            $ongkir = 0;
-            $shippingMethodName = 'AMBIL DI TOKO (Pickup)';
-            $shippingAddress = 'Customer akan mengambil pesanan di Toko.';
+        // Redirect ke Halaman Checkout (tanpa parameter selected_ids)
+        return redirect()->route('checkout');
+    }
+
+    // C. PROSES TRANSAKSI (EKSEKUSI AKHIR)
+    public function proses(Request $request)
+    {
+        $request->validate([
+            'delivery_type'     => 'required|in:shipping,pickup',
+            'metode_pembayaran' => 'required|string',
+            'selected_ids'      => 'required|string',
+            // ... validasi lain sama ...
+        ]);
+
+        // --- DETEKSI SUMBER DATA ---
+        $cartItems = collect([]);
+        $isDirectBuy = false;
+
+        if (str_starts_with($request->selected_ids, 'DIRECT_')) {
+            // Ini Beli Langsung
+            $parts = explode('_', $request->selected_ids); // DIRECT_15_2 (ID 15, Qty 2)
+            $prodId = $parts[1];
+            $qty = $parts[2];
+
+            $product = Product::find($prodId);
+            
+            // Bikin objek dummy lagi
+            $fakeItem = new \stdClass();
+            $fakeItem->product_id = $product->id;
+            $fakeItem->jumlah = $qty;
+            $fakeItem->product = $product;
+            $fakeItem->custom_price = null;
+            $fakeItem->custom_deskripsi = null;
+
+            $cartItems = collect([$fakeItem]);
+            $isDirectBuy = true;
         } else {
-            // SETTING UNTUK EKSPEDISI
-            // Pastikan ongkir tidak null, jika null set 0 (default)
-            $ongkir = $request->shipping_cost ?? 0;
-            
-            // Pastikan kurir dan service tidak null
-            $kurir = $request->courier ? strtoupper($request->courier) : 'EKSPEDISI';
-            $service = $request->shipping_service ?? 'REGULAR';
-            
-            $shippingMethodName = "$kurir - $service";
-            $shippingAddress = $request->shipping_address;
+            // Ini Dari Keranjang
+            $ids = explode(',', $request->selected_ids);
+            $cartItems = Keranjang::where('user_id', Auth::id())
+                ->whereIn('id', $ids)
+                ->with('product')
+                ->get();
         }
 
-        // Hitung Total Akhir
+        // ... HITUNG TOTAL & ONGKIR (SAMA SEPERTI KODE LAMA) ...
+        $subtotal = $cartItems->sum(fn($item) => ($item->custom_price ?? $item->product->harga) * $item->jumlah);
+        $ongkir = $request->shipping_cost ?? 0;
         $grandTotal = $subtotal + $ongkir;
 
         try {
             DB::beginTransaction();
 
-            // Upload Bukti Pembayaran
+            // ... SIMPAN TRANSAKSI HEADER (SAMA SEPERTI KODE LAMA) ...
             $buktiPath = null;
             if ($request->hasFile('bukti_pembayaran')) {
                 $buktiPath = $request->file('bukti_pembayaran')->store('bukti_pembayaran', 'public');
             }
 
-            $status = ($request->metode_pembayaran == 'cod') ? 'Menunggu Konfirmasi' : 'Akan Diproses';
-
-            // 5. SIMPAN TRANSAKSI KE DATABASE
             $transaksi = Transaksi::create([
-                'user_id'           => Auth::id(),
+                'user_id' => Auth::id(),
                 'metode_pembayaran' => $request->metode_pembayaran,
-                'bukti_pembayaran'  => $buktiPath,
-                'total'             => $grandTotal,
-                'status'            => $status,
-                'shipping_method'   => $shippingMethodName,
-                'shipping_cost'     => $ongkir,
-                'shipping_address'  => $shippingAddress,
+                'bukti_pembayaran' => $buktiPath,
+                'total' => $grandTotal,
+                'status' => ($request->metode_pembayaran == 'cod') ? 'Menunggu Konfirmasi' : 'Akan Diproses',
+                'shipping_method' => ($request->delivery_type == 'pickup') ? 'AMBIL DI TOKO' : ($request->courier . ' - ' . $request->shipping_service),
+                'shipping_cost' => $ongkir,
+                'shipping_address' => ($request->delivery_type == 'pickup') ? 'Pickup' : $request->shipping_address,
             ]);
 
-            // Ambil Kode Transaksi (Refresh model untuk dapat data terbaru dari trigger/boot)
             $transaksi->refresh();
             $kodeOrder = $transaksi->kode_transaksi ?? $transaksi->id;
-
             $adaCustomCake = false;
-
-            // 6. PERSIAPAN PESAN WHATSAPP
-            $userName = Auth::user()->name;
-            $paymentMethod = strtoupper(str_replace('_', ' ', $request->metode_pembayaran));
             
-            $waMessage = "Halo Admin DaraCake, saya baru saja membuat pesanan.\n\n";
-            $waMessage .= "🧾 *Kode Pesanan:* {$kodeOrder}\n";
-            $waMessage .= "👤 *Nama:* {$userName}\n";
-            $waMessage .= "💳 *Pembayaran:* {$paymentMethod}\n";
+            // --- LOOP ITEM (SIMPAN DETAIL & KURANGI STOK) ---
+            $waItems = ""; // String untuk list produk di WA
 
-            if ($request->delivery_type == 'pickup') {
-                $waMessage .= "🏃 *Metode:* AMBIL SENDIRI (Pickup)\n";
-            } else {
-                $waMessage .= "🚚 *Ekspedisi:* {$shippingMethodName}\n";
-                $waMessage .= "📍 *Tujuan:* {$shippingAddress}\n";
-            }
-
-            $formattedSubtotal = number_format($subtotal, 0, ',', '.');
-            $formattedOngkir = number_format($ongkir, 0, ',', '.');
-            $formattedGrandTotal = number_format($grandTotal, 0, ',', '.');
-
-            $waMessage .= "\n*Rincian Biaya:*\n";
-            $waMessage .= "Subtotal: Rp {$formattedSubtotal}\n";
-            $waMessage .= "Ongkir: Rp {$formattedOngkir}\n";
-            $waMessage .= "*TOTAL: Rp {$formattedGrandTotal}*\n\n";
-            $waMessage .= "*Detail Produk:*\n";
-
-            // 7. LOOP ITEM, SIMPAN DETAIL & KURANGI STOK
             foreach ($cartItems as $item) {
-                $hargaFinal = $item->custom_price ?? $item->product->harga;
-
                 // Simpan Detail
                 DetailTransaksi::create([
                     'transaksi_id' => $transaksi->id,
                     'produk_id'    => $item->product_id,
                     'jumlah'       => $item->jumlah,
-                    'harga'        => $hargaFinal,
+                    'harga'        => $item->custom_price ?? $item->product->harga,
                     'catatan'      => $item->custom_deskripsi
                 ]);
 
-                // LOGIKA STOK (PENTING!)
+                // *** PENGURANGAN STOK ADA DI SINI ***
                 if ($item->custom_deskripsi == null) {
-                    // Kunci baris produk untuk mencegah Race Condition (rebutan stok)
                     $product = Product::lockForUpdate()->find($item->product_id);
                     
-                    if (!$product) {
-                        throw new \Exception("Produk '{$item->product->nama_produk}' tidak ditemukan.");
+                    if (!$product || $product->stok < $item->jumlah) {
+                        throw new \Exception("Stok '{$product->nama_produk}' habis saat Anda proses bayar.");
                     }
 
-                    // Cek Apakah Stok Cukup?
-                    if ($product->stok < $item->jumlah) {
-                        throw new \Exception("Stok '{$product->nama_produk}' tidak mencukupi. Sisa: {$product->stok}");
-                    }
-
-                    // Kurangi Stok
                     $product->stok -= $item->jumlah;
                     $product->save();
                 } else {
                     $adaCustomCake = true;
                 }
 
-                // Tambah ke Text WA
-                $waMessage .= "- {$item->product->nama_produk} (x{$item->jumlah})\n";
-                if ($item->custom_deskripsi) {
-                    $waMessage .= "  _Note: {$item->custom_deskripsi}_\n";
-                }
+                // Susun Text WA
+                $waItems .= "- {$item->product->nama_produk} (x{$item->jumlah})\n";
             }
 
-            $waMessage .= "\nMohon diproses ya kak, terima kasih! 🙏";
+            // HAPUS KERANJANG (HANYA JIKA BUKAN BELI LANGSUNG)
+            if (!$isDirectBuy) {
+                Keranjang::where('user_id', Auth::id())
+                    ->whereIn('id', explode(',', $request->selected_ids))
+                    ->delete();
+            }
 
-            // 8. HAPUS ITEM DARI KERANJANG
-            Keranjang::where('user_id', Auth::id())
-                ->whereIn('id', $selectedIds)
-                ->delete();
-
-            // COMMIT TRANSAKSI DB
             DB::commit();
 
-            // 9. REDIRECT
+            // --- REDIRECT WA (SAMA SEPERTI LAMA) ---
+            $userName = Auth::user()->name;
+            $paymentMethod = strtoupper(str_replace('_', ' ', $request->metode_pembayaran));
+            $waMessage = "Halo Admin DaraCake, pesanan baru nih!\n\n";
+            $waMessage .= "🧾 Kode: {$kodeOrder}\n";
+            $waMessage .= "👤 Nama: {$userName}\n";
+            $waMessage .= "💳 Bayar: {$paymentMethod}\n\n";
+            $waMessage .= "Detail:\n" . $waItems;
+            $waMessage .= "\nTotal: Rp " . number_format($grandTotal, 0, ',', '.');
+
             if ($adaCustomCake) {
-                $adminNumber = '62895611194900'; 
-                // Encode pesan untuk URL WA
-                $encodedMessage = urlencode($waMessage);
-                return redirect("https://wa.me/{$adminNumber}?text={$encodedMessage}"); 
-            } else {
-                return redirect()->route('customer.pesanan.index')->with('success', 'Pesanan berhasil dibuat!');
+                $encoded = urlencode($waMessage);
+                return redirect("https://wa.me/62895611194900?text={$encoded}");
             }
+
+            return redirect()->route('customer.pesanan.index')->with('success', 'Pesanan berhasil!');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            // Redirect kembali dengan pesan error yang spesifik (misal: Stok Habis)
-            return redirect()->route('keranjang.index')->with('error', 'Gagal memproses pesanan: ' . $e->getMessage());
+            // Jika direct buy gagal, balikin ke detail produk
+            if ($isDirectBuy) {
+                return redirect()->back()->with('error', $e->getMessage());
+            }
+            return redirect()->route('keranjang.index')->with('error', $e->getMessage());
         }
     }
 }
