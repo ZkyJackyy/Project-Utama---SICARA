@@ -14,6 +14,36 @@
     </div>
 
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
+        {{-- ALERT INFO: KHUSUS REQUEST SPESIAL --}}
+<div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded-r-lg shadow-sm">
+    <div class="flex items-start">
+        <div class="flex-shrink-0">
+            {{-- Ikon Info --}}
+            <i class="fas fa-info-circle text-blue-500 text-xl mt-0.5"></i>
+        </div>
+        <div class="ml-3 w-full">
+            <h3 class="text-sm font-bold text-blue-800">Catatan Pemesanan Custom</h3>
+            <div class="mt-1 text-sm text-blue-700">
+                <p class="mb-2">
+                    Halaman ini dikhususkan untuk pemesanan <strong>Kue Ulang Tahun Basic</strong> (Bulat/Kotak dengan topping standar).
+                </p>
+                <p>
+                    Ingin request desain khusus seperti <strong>Wedding Cake, Kue Hantaran atau lainnya?</strong> 
+                    Silakan konsultasi langsung dengan Admin kami via WhatsApp.
+                </p>
+            </div>
+            {{-- Tombol Chat WA --}}
+            <div class="mt-3">
+                <a href="https://wa.me/62895611194900?text=Halo%20Admin%20DaraCake,%20saya%20mau%20konsultasi%20custom%20cake%20spesial..." 
+                   target="_blank"
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none shadow-sm transition-colors">
+                    <i class="fab fa-whatsapp mr-2 text-lg"></i>
+                    Chat Admin Sekarang
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
         
         <form method="POST" action="{{ route('keranjang.tambahCustom') }}" enctype="multipart/form-data" id="custom-form">
             @csrf
