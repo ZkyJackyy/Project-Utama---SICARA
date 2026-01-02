@@ -193,18 +193,18 @@ public function proses(Request $request)
 
             // Header Pesan
             $waMessage  = "Halo Admin DaraCake, saya baru saja membuat pesanan.\n\n";
-            $waMessage .= "🧾 *ID Pesanan:* #{$kodeOrder}\n";
-            $waMessage .= "👤 *Nama:* {$userName}\n";
-            $waMessage .= "💳 *Pembayaran:* {$paymentMethod}\n";
+            $waMessage .= "*ID Pesanan:* #{$kodeOrder}\n";
+            $waMessage .= "*Nama:* {$userName}\n";
+            $waMessage .= "*Pembayaran:* {$paymentMethod}\n";
 
             // Info Pengiriman
             if ($request->delivery_type == 'pickup') {
-                $waMessage .= "🏃 *Metode:* AMBIL SENDIRI (Pickup)\n";
+                $waMessage .= "*Metode:* AMBIL SENDIRI (Pickup)\n";
             } else {
                 // Ambil info kurir dari input hidden atau default text
                 $kurirInfo = $request->courier ? strtoupper($request->courier) : 'EKSPEDISI';
-                $waMessage .= "🚚 *Ekspedisi:* {$kurirInfo}\n";
-                $waMessage .= "📍 *Tujuan:* {$request->shipping_address}\n";
+                $waMessage .= "*Ekspedisi:* {$kurirInfo}\n";
+                $waMessage .= "*Tujuan:* {$request->shipping_address}\n";
             }
 
             // Rincian Biaya
@@ -219,7 +219,7 @@ public function proses(Request $request)
                 $namaProduk = $item->product->nama_produk;
                 $waMessage .= "- {$namaProduk} (x{$item->jumlah})\n";
                 if ($item->custom_deskripsi) {
-                    $waMessage .= "  Note: {$item->custom_deskripsi}\n";
+                    $waMessage .= " ↳ Note: {$item->custom_deskripsi}\n";
                 }
             }
 

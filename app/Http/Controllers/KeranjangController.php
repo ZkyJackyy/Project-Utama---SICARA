@@ -77,7 +77,7 @@ public function tambah(Request $request, $id)
     }
 
     // 🍰 Tambah Produk Custom
-    public function tambahCustom(Request $request)
+public function tambahCustom(Request $request)
     {
         $request->validate([
             'ukuran' => 'required',
@@ -85,25 +85,34 @@ public function tambah(Request $request, $id)
             'final_price' => 'required|numeric'
         ]);
 
-        $idProdukDasar = 23; 
-        $baseProduct = Product::find($idProdukDasar);
+        // --- LOGIKA SELF-HEALING ---
+        // Cari produk "Kue Kustom", kalau tidak ada buat baru.
+        // Jadi kita tidak peduli ID-nya 23, 24, atau 100.
+        $baseProduct = Product::firstOrCreate(
+            ['nama_produk' => 'Kue Kustom'],
+            [
+                'harga' => 10000,
+                'stok' => 9999,
+                'berat' => 1000,
+                'deskripsi' => 'Base product for custom cake',
+                'jenis_id' => 10,
+                'gambar' => 'gambar/uaw.jpg'
+            ]
+        );
 
-        if (!$baseProduct) {
-             return back()->with('error', 'Produk dasar tidak ditemukan.');
-        }
+        $idProdukDasar = $baseProduct->id; // Ambil ID dinamis
 
+        // Susun Deskripsi
         $deskripsi = "Ukuran: " . $request->ukuran . ", Rasa: " . $request->rasa;
-        
         if ($request->has('toppings')) {
              $toppings = is_array($request->toppings) ? implode(', ', $request->toppings) : $request->toppings;
              $deskripsi .= ", Topping: " . $toppings;
         }
-        
         if ($request->tulisan) {
             $deskripsi .= ", Tulisan: '" . $request->tulisan . "'";
         }
 
-        // Simpan dan tampung hasilnya ke variabel $newItem
+        // Simpan
         $newItem = Keranjang::create([
             'user_id' => Auth::id(),
             'product_id' => $idProdukDasar,
@@ -112,7 +121,6 @@ public function tambah(Request $request, $id)
             'custom_price' => $request->final_price
         ]);
 
-        // LOGIKA BARU: Langsung ke Checkout membawa ID item yang baru dibuat
         return redirect()->route('checkout', ['selected_ids' => $newItem->id]);
     }
 
