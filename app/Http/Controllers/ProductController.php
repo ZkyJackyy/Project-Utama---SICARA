@@ -59,6 +59,64 @@ class ProductController extends Controller
         ));
     }
 
+    public function getDashboardStats()
+{
+    // 1. Statistik Angka (Sama seperti sebelumnya)
+    $totalPenjualan = Transaksi::where('status', 'Selesai')->sum('total');
+    $pesananBaru = Transaksi::whereIn('status', ['Menunggu Konfirmasi', 'Akan Diproses'])->count();
+    $pesananDiproses = Transaksi::where('status', 'Diproses')->count();
+    $totalStok = Product::whereNull('deleted_at')->where('id', '!=', 23)->sum('stok');
+    $produkTerjual = DetailTransaksi::whereHas('transaksi', function ($query) {
+        $query->where('status', 'Selesai');
+    })->sum('jumlah');
+
+    // 2. DATA TABEL PESANAN TERBARU (Baru Ditambahkan)
+    $latestOrders = Transaksi::with(['user', 'detailTransaksi'])
+        ->orderBy('created_at', 'desc')
+        ->limit(5)
+        ->get()
+        ->map(function ($order) {
+            // Kita format datanya di sini biar JS-nya enteng
+            
+            // Cek Custom
+            $isCustom = $order->detailTransaksi->contains(fn($d) => !empty($d->catatan));
+            
+            // Tentukan Warna Status
+            $statusClass = match($order->status) {
+                'Menunggu Konfirmasi' => 'bg-yellow-50 text-yellow-700 border-yellow-100',
+                'Akan Diproses' => 'bg-blue-50 text-blue-700 border-blue-100',
+                'Diproses' => 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                'Selesai' => 'bg-green-50 text-green-700 border-green-100',
+                'Dibatalkan' => 'bg-red-50 text-red-700 border-red-100',
+                default => 'bg-gray-50 text-gray-600 border-gray-100'
+            };
+
+            return [
+                'id' => $order->id,
+                'kode' => $order->kode_transaksi ?? $order->id,
+                'waktu' => $order->created_at->diffForHumans(),
+                'customer_name' => $order->user->name ?? 'Guest',
+                'customer_email' => $order->user->email ?? '-',
+                'total' => number_format($order->total, 0, ',', '.'),
+                'status' => $order->status,
+                'status_class' => $statusClass,
+                'payment' => strtoupper(str_replace('_', ' ', $order->metode_pembayaran)),
+                'is_custom' => $isCustom,
+                'item_count' => $order->detailTransaksi->count(),
+                'link_detail' => route('admin.pesanan.show', $order->id)
+            ];
+        });
+
+    return response()->json([
+        'totalPenjualan' => number_format($totalPenjualan, 0, ',', '.'),
+        'pesananBaru' => $pesananBaru,
+        'pesananDiproses' => $pesananDiproses,
+        'totalStok' => number_format($totalStok),
+        'produkTerjual' => $produkTerjual,
+        'orders' => $latestOrders // <--- Data tabel dikirim disini
+    ]);
+}
+
     public function index()
     {
         $products = Product::withTrashed()->latest()->paginate(10); // <--- AMBIL SEMUA

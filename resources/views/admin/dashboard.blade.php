@@ -28,7 +28,8 @@
             <div class="flex flex-col h-full justify-between">
                 <div>
                     <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Total Pendapatan</p>
-                    <h3 class="text-2xl font-bold text-gray-800">Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</h3>
+                    {{-- ID DITAMBAHKAN: stat-pendapatan --}}
+                    <h3 id="stat-pendapatan" class="text-2xl font-bold text-gray-800">Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</h3>
                 </div>
                 <div class="mt-4 flex items-center text-xs font-medium text-green-600 bg-green-50 w-fit px-2 py-1 rounded-md">
                     <i class="fas fa-check-circle mr-1.5"></i> Transaksi Selesai
@@ -53,7 +54,8 @@
             <div class="flex flex-col h-full justify-between">
                 <div>
                     <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Pesanan Baru</p>
-                    <h3 class="text-2xl font-bold text-gray-800">{{ $pesananBaru }}</h3>
+                    {{-- ID DITAMBAHKAN: stat-pesanan-baru --}}
+                    <h3 id="stat-pesanan-baru" class="text-2xl font-bold text-gray-800">{{ $pesananBaru }}</h3>
                 </div>
                 <div class="mt-4 flex items-center text-xs font-medium text-orange-600 bg-orange-50 w-fit px-2 py-1 rounded-md">
                     <i class="fas fa-exclamation-circle mr-1.5"></i> Perlu Konfirmasi
@@ -69,7 +71,8 @@
             <div class="flex flex-col h-full justify-between">
                 <div>
                     <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Sedang Diproses</p>
-                    <h3 class="text-2xl font-bold text-gray-800">{{ $pesananDiproses }}</h3>
+                    {{-- ID DITAMBAHKAN: stat-diproses --}}
+                    <h3 id="stat-diproses" class="text-2xl font-bold text-gray-800">{{ $pesananDiproses }}</h3>
                 </div>
                 <div class="mt-4 flex items-center text-xs font-medium text-blue-600 bg-blue-50 w-fit px-2 py-1 rounded-md">
                     <i class="fas fa-shipping-fast mr-1.5"></i> Dapur / Kurir
@@ -85,7 +88,8 @@
             <div class="flex flex-col h-full justify-between">
                 <div>
                     <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Inventory Total</p>
-                    <h3 class="text-2xl font-bold text-gray-800">{{ number_format($totalStok) }} <span class="text-base font-normal text-gray-400">unit</span></h3>
+                    {{-- ID DITAMBAHKAN: stat-stok --}}
+                    <h3 id="stat-stok" class="text-2xl font-bold text-gray-800">{{ number_format($totalStok) }} <span class="text-base font-normal text-gray-400">unit</span></h3>
                     <div class="flex-grow mb-2">
                         {{-- Cek variabel jumlah produk yang menipis --}}
                         @if ($stokMenipisCount > 0)
@@ -105,7 +109,8 @@
                 </div>
                 <div class="mt-4 flex items-center justify-between border-t border-gray-50 pt-3">
                     <span class="text-xs text-gray-400">Terjual bulan ini</span>
-                    <span class="text-xs font-bold text-[#700207]">{{ $produkTerjual }} pcs</span>
+                    {{-- ID DITAMBAHKAN: stat-terjual --}}
+                    <span id="stat-terjual" class="text-xs font-bold text-[#700207]">{{ $produkTerjual }} pcs</span>
                 </div>
             </div>
         </div>
@@ -135,7 +140,8 @@
                         <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50 text-sm">
+                {{-- ID DITAMBAHKAN: table-body-pesanan --}}
+                <tbody id="table-body-pesanan" class="divide-y divide-gray-50 text-sm">
                     @forelse ($pesananTerbaru as $pesanan)
                     <tr class="hover:bg-gray-50/80 transition duration-150">
                         <td class="px-6 py-4">
@@ -211,4 +217,100 @@
     </div>
 
 </div>
+
+{{-- SCRIPT AUTO-UPDATE DASHBOARD --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        
+        function updateDashboard() {
+            $.ajax({
+                url: "{{ route('admin.api.dashboard') }}", // Pastikan Route API sudah dibuat!
+                type: "GET",
+                dataType: "json",
+                cache: false,
+                success: function(data) {
+                    // 1. UPDATE KARTU STATISTIK
+                    $('#stat-pendapatan').text('Rp ' + data.totalPenjualan);
+                    $('#stat-pesanan-baru').text(data.pesananBaru);
+                    $('#stat-diproses').text(data.pesananDiproses);
+                    $('#stat-stok').html(data.totalStok + ' <span class="text-base font-normal text-gray-400">unit</span>');
+                    $('#stat-terjual').text(data.produkTerjual + ' pcs');
+                    
+                    // 2. UPDATE TABEL PESANAN (RENDER ULANG HTML)
+                    let tableHtml = '';
+                    
+                    if(data.orders.length > 0) {
+                        $.each(data.orders, function(index, order) {
+                            // Cek Custom Badge
+                            let customBadge = '';
+                            if(order.is_custom) {
+                                customBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-100 w-fit">✨ Custom</span>`;
+                            }
+
+                            // Susun HTML Baris Tabel
+                            tableHtml += `
+                            <tr class="hover:bg-gray-50/80 transition duration-150">
+                                <td class="px-6 py-4">
+                                    <span class="font-mono font-medium text-[#700207]">#${order.kode}</span>
+                                    <div class="text-[10px] text-gray-400 mt-1">${order.waktu}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-gray-900">${order.customer_name}</div>
+                                    <div class="text-xs text-gray-400 truncate max-w-[150px]">${order.customer_email}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col gap-1.5">
+                                        ${customBadge}
+                                        <span class="text-gray-500 text-xs">${order.item_count} Produk</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-gray-800">Rp ${order.total}</div>
+                                    <div class="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide">${order.payment}</div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold border ${order.status_class}">
+                                        ${order.status}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <a href="${order.link_detail}" 
+                                       class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-[#700207] hover:border-[#700207] transition-colors shadow-sm">
+                                        <i class="fas fa-chevron-right text-xs"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            `;
+                        });
+                    } else {
+                        // Jika tidak ada pesanan
+                        tableHtml = `
+                        <tr>
+                            <td colspan="6" class="px-6 py-16 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                                        <i class="fas fa-inbox text-2xl text-gray-300"></i>
+                                    </div>
+                                    <h3 class="text-sm font-medium text-gray-900">Belum ada pesanan</h3>
+                                </div>
+                            </td>
+                        </tr>
+                        `;
+                    }
+
+                    // Masukkan HTML baru ke dalam tbody
+                    $('#table-body-pesanan').html(tableHtml);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Gagal update dashboard:", error);
+                }
+            });
+        }
+
+        // Jalankan setiap 5 detik
+        setInterval(updateDashboard, 5000);
+    });
+</script>
+
 @endsection

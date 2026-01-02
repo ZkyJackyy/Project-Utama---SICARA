@@ -229,7 +229,7 @@
                 </li>
                 <li>
                     <a href="{{ route('tickets.index') }}" class="block px-4 py-3 rounded-lg hover:bg-brandCream/50 hover:text-brandRed">
-                        <i class="fa fa-birthday-cake w-6"></i> Layanan Bantuan
+                        <i class="fas fa-headset w-6"></i> Layanan Bantuan
                     </a>
                 </li>
             </ul>

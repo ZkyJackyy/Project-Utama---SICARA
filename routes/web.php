@@ -20,6 +20,7 @@ use App\Http\Controllers\NotificationController;
 
 // ================== HOME (Customer) ==================
 Route::get('/', [ProductController::class, 'indexHome'])->name('dashboard');
+// Route API untuk AJAX Dashboard
 
 // ================== AUTH ==================
 // Login
@@ -36,6 +37,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // ================== DASHBOARD (Role-based) ==================
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard-admin', [ProductController::class, 'dashboard'])->name('dashboard.admin');
+    Route::get('/admin/api/dashboard-stats', [ProductController::class, 'getDashboardStats'])->name('admin.api.dashboard');
+
      //sama ubah ini juga -- nashwa
     // CRUD Produk
     Route::get('/daftar-produk', [ProductController::class, 'index'])->name('produk.index');
