@@ -179,10 +179,8 @@ public function proses(Request $request)
 
             DB::commit();
 
-            // ==========================================================
-            // 5. LOGIKA REDIRECT KE WHATSAPP (FORMAT BARU & RAPI)
-            // ==========================================================
             
+            //redirect wa
             $userName = Auth::user()->name;
             $paymentMethod = strtoupper(str_replace('_', ' ', $request->metode_pembayaran));
             

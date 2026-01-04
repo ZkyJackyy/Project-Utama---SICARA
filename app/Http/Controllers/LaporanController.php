@@ -98,7 +98,6 @@ class LaporanController extends Controller
         $totalPendapatan = $transaksi->sum('total');
 
         // 3. Load View PDF
-        // Kita set kertas A4 dan orientasi Potrait (tegak)
         $pdf = Pdf::loadView('admin.laporan.pdf_view', [
             'transaksi' => $transaksi,
             'totalPendapatan' => $totalPendapatan,
