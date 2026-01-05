@@ -10,15 +10,7 @@
 
         {{-- 💕 Bagian Kiri (Background Gambar + Ilustrasi Tengah) --}}
         <div class="hidden md:flex w-1/2 items-center justify-center relative animate-slide-left overflow-hidden bg-cover bg-center" 
-             style="background-image: url('{{ asset('gambar/bg22.jpg') }}');">
-            
-            {{-- Overlay lembut (Diubah ke warna merah marun) --}}
-            <div class="absolute inset-0 bg-[#700207]/40 mix-blend-multiply"></div>
-
-            {{-- ✨ Gambar ilustrasi di tengah --}}
-            <img src="{{ asset('gambar/kue5.png') }}" 
-                 alt="Register Illustration" 
-                 class="w-4/5 max-w-sm opacity-95 drop-shadow-2xl select-none pointer-events-none object-contain z-10">
+             style="background-image: url('{{ asset('gambar/uyu.png') }}');">
         </div>
 
         {{-- 🧁 Bagian Kanan (Form Register) --}}

@@ -18,7 +18,7 @@
 <body class="bg-[#F4ECE9] font-sans">
 
     <div class="flex h-screen">
-        <aside class="w-72 bg-gradient-to-b from-[#ECCFC3] to-[#4a0105] text-white shadow-2xl hidden md:block">
+        <aside class="w-72 bg-[#4a0105] text-white shadow-2xl hidden md:block">
             <div class="p-6 flex flex-col items-center border-b border-white/20">
                 <img src="/gambar/5.png" alt="Logo" class="h-20 mb-3 drop-shadow-lg">
                 <h1 class="text-3xl font-extrabold tracking-wide">DARA CAKE</h1>

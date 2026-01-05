@@ -5,9 +5,11 @@
 @section('content')
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Daftar Produk</h1>
-        <a href="/tambah-produk" class="inline-block bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition">
-            + Tambah Produk
-        </a>
+        <a href="/tambah-produk"
+   class="inline-block bg-[#4a0105] hover:bg-[#3a0104] text-white font-bold py-2 px-4 rounded-lg transition">
+    + Tambah Produk
+</a>
+
     </div>
 
     <div class="overflow-x-auto bg-white rounded-lg shadow">

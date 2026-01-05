@@ -13,6 +13,7 @@ use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\CustomCakeController;
+use App\Http\Controllers\CustomerServiceController;
 
 // ================== HOME (Customer) ==================
 Route::get('/', [ProductController::class, 'indexHome'])->name('dashboard');
@@ -125,6 +126,12 @@ Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notif
 Route::get('/notifikasi/read/{id}', [NotificationController::class, 'markRead'])->name('notifikasi.read');
 Route::post('/notifikasi/read-all', [NotificationController::class, 'markAllRead'])
     ->name('notifikasi.readAll');
+
+Route::get('/customer-service', [CustomerServiceController::class, 'index'])
+    ->name('customer.service');
+
+Route::post('/customer-service/chat', [CustomerServiceController::class, 'redirect'])
+    ->name('customer.service.chat');
 
 
 

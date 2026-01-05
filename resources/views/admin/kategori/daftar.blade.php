@@ -7,9 +7,11 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-slate-800">Daftar Kategori</h1>
         {{-- Pastikan Anda memiliki route bernama 'kategori.create' --}}
-        <a href="{{ route('category.create') }}" class="inline-block bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition">
-            + Tambah Kategori
-        </a>
+        <a href="{{ route('category.create') }}" 
+   class="inline-block bg-[#4a0105] hover:bg-[#3a0104] text-white font-bold py-2 px-4 rounded-lg transition">
+    + Tambah Kategori
+</a>
+
     </div>
 
     {{-- Tabel Data Kategori --}}
