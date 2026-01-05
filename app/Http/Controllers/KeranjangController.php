@@ -40,54 +40,44 @@ class KeranjangController extends Controller
     }
 
     // ➕ Tambah Produk Biasa
-    public function tambah(Request $request, $id)
+public function tambah(Request $request, $id)
     {
         $product = Product::findOrFail($id);
         $jumlah = max(1, (int) $request->jumlah);
         $userId = Auth::id();
 
-        // Cek Stok
+        // 1. Cek Ketersediaan Stok (JANGAN KURANGI DB)
         if ($jumlah > $product->stok) {
-            return back()->with('error', 'Stok tidak mencukupi.');
+            return back()->with('error', 'Stok produk tidak mencukupi.');
         }
 
-        // Cek apakah produk sudah ada
+        // 2. Logika Simpan/Update Keranjang
         $existingItem = Keranjang::where('user_id', $userId)
-                                 ->where('product_id', $id)
-                                 ->whereNull('custom_deskripsi')
-                                 ->first();
-
-        $cartItem = null; // Variabel untuk menyimpan item yang diproses
+            ->where('product_id', $id)
+            ->whereNull('custom_deskripsi')
+            ->first();
 
         if ($existingItem) {
-            // Jika sudah ada, update jumlah
+            // Cek stok akumulasi
             if (($existingItem->jumlah + $jumlah) > $product->stok) {
-                return back()->with('error', 'Stok tidak cukup untuk menambah lagi.');
+                return back()->with('error', 'Stok toko tidak cukup jika ditambah dengan yang ada di keranjangmu.');
             }
             $existingItem->jumlah += $jumlah;
             $existingItem->save();
-            
-            $cartItem = $existingItem; // Simpan ke variabel
         } else {
-            // Jika belum ada, buat baru
-            $cartItem = Keranjang::create([
+            Keranjang::create([
                 'user_id' => $userId,
                 'product_id' => $id,
                 'jumlah' => $jumlah
             ]);
         }
 
-        // LOGIKA BARU: REDIRECT KE CHECKOUT DENGAN ID
-        if ($request->action == 'buy_now') {
-            // Redirect langsung ke checkout dengan membawa ID item ini
-            return redirect()->route('checkout', ['selected_ids' => $cartItem->id]);
-        }
-
-        return redirect()->route('keranjang.index')->with('success', 'Produk masuk keranjang!');
+        // 3. Redirect Balik (Bukan ke Checkout)
+        return redirect()->route('keranjang.index')->with('success', 'Produk berhasil masuk keranjang!');
     }
 
     // 🍰 Tambah Produk Custom
-    public function tambahCustom(Request $request)
+public function tambahCustom(Request $request)
     {
         $request->validate([
             'ukuran' => 'required',
@@ -95,25 +85,34 @@ class KeranjangController extends Controller
             'final_price' => 'required|numeric'
         ]);
 
-        $idProdukDasar = 23; 
-        $baseProduct = Product::find($idProdukDasar);
+        // --- LOGIKA SELF-HEALING ---
+        // Cari produk "Kue Kustom", kalau tidak ada buat baru.
+        // Jadi kita tidak peduli ID-nya 23, 24, atau 100.
+        $baseProduct = Product::firstOrCreate(
+            ['nama_produk' => 'Kue Kustom'],
+            [
+                'harga' => 10000,
+                'stok' => 9999,
+                'berat' => 1000,
+                'deskripsi' => 'Base product for custom cake',
+                'jenis_id' => 10,
+                'gambar' => 'gambar/uaw.jpg'
+            ]
+        );
 
-        if (!$baseProduct) {
-             return back()->with('error', 'Produk dasar tidak ditemukan.');
-        }
+        $idProdukDasar = $baseProduct->id; // Ambil ID dinamis
 
+        // Susun Deskripsi
         $deskripsi = "Ukuran: " . $request->ukuran . ", Rasa: " . $request->rasa;
-        
         if ($request->has('toppings')) {
              $toppings = is_array($request->toppings) ? implode(', ', $request->toppings) : $request->toppings;
              $deskripsi .= ", Topping: " . $toppings;
         }
-        
         if ($request->tulisan) {
             $deskripsi .= ", Tulisan: '" . $request->tulisan . "'";
         }
 
-        // Simpan dan tampung hasilnya ke variabel $newItem
+        // Simpan
         $newItem = Keranjang::create([
             'user_id' => Auth::id(),
             'product_id' => $idProdukDasar,
@@ -122,7 +121,6 @@ class KeranjangController extends Controller
             'custom_price' => $request->final_price
         ]);
 
-        // LOGIKA BARU: Langsung ke Checkout membawa ID item yang baru dibuat
         return redirect()->route('checkout', ['selected_ids' => $newItem->id]);
     }
 

@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UlasanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PesananController;
@@ -17,6 +19,7 @@ use App\Http\Controllers\CustomerServiceController;
 
 // ================== HOME (Customer) ==================
 Route::get('/', [ProductController::class, 'indexHome'])->name('dashboard');
+// Route API untuk AJAX Dashboard
 
 // ================== AUTH ==================
 // Login
@@ -33,6 +36,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // ================== DASHBOARD (Role-based) ==================
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard-admin', [ProductController::class, 'dashboard'])->name('dashboard.admin');
+    Route::get('/admin/api/dashboard-stats', [ProductController::class, 'getDashboardStats'])->name('admin.api.dashboard');
+
      //sama ubah ini juga -- nashwa
     // CRUD Produk
     Route::get('/daftar-produk', [ProductController::class, 'index'])->name('produk.index');
@@ -49,6 +54,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
     Route::post('/keuangan', [KeuanganController::class, 'store'])->name('keuangan.store');
+    Route::get('/admin/api/notifications', [NotificationController::class, 'getNewOrders'])->name('admin.api.notifications');
 });
 
 
@@ -106,6 +112,8 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/custom-cake', [CustomCakeController::class, 'showCustomCakeForm'])->name('custom-cake.index');
     Route::post('/custom-cake/store', [CustomCakeController::class, 'store'])->name('custom-cake.store');
 Route::post('/keranjang/tambah-custom', [KeranjangController::class, 'tambahCustom'])->name('keranjang.tambahCustom');
+// Route Checkout Langsung (Beli Sekarang)
+Route::post('/checkout/direct', [CheckoutController::class, 'directCheckout'])->name('checkout.direct');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -113,6 +121,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('customer.pesanan.index');
     Route::put('/pesanan-saya/{transaksi}/batal', [App\Http\Controllers\PesananController::class, 'batalPesanan'])
         ->name('customer.pesanan.batal');
+    // Di dalam group middleware auth customer
+    Route::put('/pesanan/{id}/terima', [PesananController::class, 'terimaPesanan'])->name('customer.pesanan.terima');
 });
 
 

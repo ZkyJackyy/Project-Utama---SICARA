@@ -56,4 +56,14 @@ class User extends Authenticatable
         return $this->hasMany(Keranjang::class);
     }
 
+    public function messagesSent()
+{
+    return $this->hasMany(Message::class, 'from_id');
+}
+
+public function messagesReceived()
+{
+    return $this->hasMany(Message::class, 'to_id');
+}
+
 }

@@ -58,7 +58,7 @@
                         <span class="text-xs font-semibold text-gray-800">Stok: {{ $produk->stok }}</span>
                     </div>
 
-                    @if(isset($produk->total_terjual) && $produk->total_terjual > 0)
+                    @if(isset($produk->total_terjual) && $produk->total_terjual > 5)
                         <div class="absolute top-3 right-3 bg-[#700207] text-white px-3 py-1 rounded-full shadow-sm flex items-center gap-1 z-10">
                             <i class="fas fa-fire text-xs text-yellow-400"></i>
                             <span class="text-xs font-semibold">{{ $produk->total_terjual }} Terjual</span>
@@ -74,8 +74,19 @@
                         {{ $produk->nama_produk }}
                     </h3>
 
-                    {{-- Spacer --}}
-                    <div class="flex-grow"></div>
+                    {{-- Spacer & Peringatan Stok Menipis --}}
+                    <div class="flex-grow mb-2">
+                        {{-- PERBAIKAN DI SINI: Logika if yang benar --}}
+                        @if ($produk->stok < 5 && $produk->stok > 0)
+                            <p class="text-xs font-bold text-red-600 animate-pulse flex items-center gap-1 mt-1">
+                                <i class="fas fa-exclamation-circle"></i> Stok Sedikit!
+                            </p>
+                        @elseif ($produk->stok == 0)
+                             <p class="text-xs font-bold text-gray-500 mt-1">
+                                Stok Habis
+                            </p>
+                        @endif
+                    </div>
 
                     {{-- Garis Pemisah --}}
                     <div class="w-full h-px bg-gray-100 my-3 md:my-4"></div>

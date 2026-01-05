@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Transaksi extends Model
 {
@@ -17,6 +18,9 @@ class Transaksi extends Model
         'total',
         'status',
         'is_custom',
+        'shipping_method',
+        'shipping_cost',
+        'shipping_address',
     ];
 
     // ✅ Tambahkan relasi ke user
@@ -35,5 +39,16 @@ class Transaksi extends Model
     {
         return $this->hasOne(Ulasan::class, 'pesanan_id');
     }
+
+    protected static function boot()
+{
+    parent::boot();
+
+    static::creating(function ($model) {
+        // Format: INV - TAHUNBULANTANGGAL - RANDOM 4 HURUF
+        // Contoh: INV-20251224-X7A2
+        $model->kode_transaksi = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+    });
+}
 
 }

@@ -49,7 +49,7 @@
                 </div>
 
                 {{-- Stats Mini --}}
-                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 grid grid-cols-2 divide-x divide-gray-200">
+                {{-- <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 grid grid-cols-2 divide-x divide-gray-200">
                     <div class="text-center">
                         <span class="block text-lg font-bold text-[#700207]">Member</span>
                         <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Status</span>
@@ -58,7 +58,7 @@
                         <span class="block text-lg font-bold text-[#700207]">{{ auth()->user()->created_at->format('Y') }}</span>
                         <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Bergabung</span>
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
 

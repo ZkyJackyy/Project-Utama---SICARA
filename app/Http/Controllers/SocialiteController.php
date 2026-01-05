@@ -15,10 +15,6 @@ class SocialiteController extends Controller
     {
         return Socialite::driver('google')->redirect();
     }
-
-    /**
-     * Menangani callback dari Google setelah otentikasi.
-     */
     public function handleGoogleCallback()
     {
         try {

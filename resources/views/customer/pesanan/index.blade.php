@@ -24,7 +24,7 @@
             {{-- Header --}}
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-[#5C0A0A]">
-                    Pesanan #{{ $item->id }}
+                    Pesanan #{{ $item->kode_transaksi ?? $item->id }}
                 </h2>
 
                 {{-- Status Badge --}}
@@ -61,6 +61,44 @@
 
             {{-- Action --}}
             <div class="mt-6 space-y-4">
+                {{-- INFO RESI (Muncul jika status Dikirim) --}}
+                @if ($item->status == 'Dikirim' && $item->nomor_resi)
+                    <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex justify-between items-center">
+                        <div class="text-sm text-blue-800">
+                            <span class="font-bold">Info Pengiriman:</span> <br>
+                            {{ $item->nomor_resi }}
+                        </div>
+                        {{-- Tombol Copy Resi (Opsional, biar keren) --}}
+                        <button onclick="navigator.clipboard.writeText('{{ $item->nomor_resi }}'); alert('Resi disalin!')" 
+                                class="text-xs bg-white border border-blue-200 px-2 py-1 rounded text-blue-600 hover:bg-blue-100">
+                            <i class="fas fa-copy"></i> Salin
+                        </button>
+                    </div>
+                @endif
+
+                {{-- TOMBOL KONFIRMASI TERIMA BARANG --}}
+                {{-- Muncul hanya jika status Dikirim atau Siap Diambil --}}
+                @if ($item->status == 'Dikirim' || $item->status == 'Siap Diambil')
+                    <form action="{{ route('customer.pesanan.terima', $item->id) }}" method="POST"
+                        onsubmit="return confirm('Apakah Anda yakin sudah menerima pesanan ini dengan baik?');">
+                        @csrf @method('PUT')
+                        <button class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 shadow-md animate-pulse flex justify-center items-center gap-2">
+                            <i class="fas fa-check-circle"></i> Pesanan Diterima
+                        </button>
+                    </form>
+                    <p class="text-xs text-center text-gray-500 mt-1">Klik tombol di atas jika barang sudah sampai.</p>
+                @endif
+
+                {{-- TOMBOL BATALKAN (Hanya jika menunggu konfirmasi)
+                @if ($item->status == 'Menunggu Konfirmasi')
+                    <form action="{{ route('customer.pesanan.batal', $item->id) }}" method="POST"
+                        onsubmit="return confirm('Batalkan pesanan ini?');">
+                        @csrf @method('PUT')
+                        <button class="w-full bg-red-100 text-red-600 py-2.5 rounded-xl font-semibold hover:bg-red-200">
+                            Batalkan Pesanan
+                        </button>
+                    </form>
+                @endif --}}
 
                 {{-- Batalkan Pesanan --}}
                 @if ($item->status == 'Menunggu Konfirmasi')

@@ -11,45 +11,100 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+
+    // --- HELPER: Cari ID Kue Kustom (Private) ---
+    private function getCustomCakeId() {
+        $product = Product::where('nama_produk', 'Kue Kustom')->first();
+        return $product ? $product->id : 0;
+    }
     //ini
     public function dashboard()
     {
-        // 1. Total Pendapatan (Hanya yang Selesai - Uang nyata)
+        $idCustom = $this->getCustomCakeId(); // Ambil ID dinamis
+
         $totalPenjualan = Transaksi::where('status', 'Selesai')->sum('total');
+        $pesananBaru = Transaksi::whereIn('status', ['Menunggu Konfirmasi', 'Akan Diproses'])->count();
+        $pesananDiproses = Transaksi::where('status', 'Diproses')->count();
 
-        // 2. Pesanan Baru (URGENT: Status 'Menunggu Konfirmasi')
-        // Logika: Ini adalah angka notifikasi yang membutuhkan tindakan Admin segera.
-        $pesananBaru = Transaksi::where('status', 'Menunggu Konfirmasi')->count();
-
-        // 3. Pesanan Aktif (Sedang Dapur/Proses)
-        // Logika: Ini pesanan yang sudah oke, tinggal dibuat/dikirim.
-        $pesananDiproses = Transaksi::whereIn('status', ['Akan Diproses', 'Diproses'])->count();
-
-        // 4. Total Stok Produk (KECUALI Custom Cake ID 23)
-        // Logika: Custom cake stoknya 999 (dummy), jadi harus dibuang dari hitungan agar data akurat.
+        // Kecualikan Kue Kustom dari stok
         $totalStok = Product::whereNull('deleted_at')
-                            ->where('id', '!=', 23) // <-- ID Custom Cake dikecualikan
-                            ->sum('stok');
+            ->where('id', '!=', $idCustom) 
+            ->sum('stok');
 
-        // 5. Produk Terjual (Hanya dari pesanan Selesai)
+        $stokMenipisCount = Product::whereNull('deleted_at')
+            ->where('id', '!=', $idCustom)
+            ->where('stok', '<', 10)
+            ->where('stok', '>', 0)
+            ->count();
+
         $produkTerjual = DetailTransaksi::whereHas('transaksi', function ($query) {
             $query->where('status', 'Selesai');
         })->sum('jumlah');
 
-        // 6. Tabel Pesanan Terbaru (Ambil 5)
-        $pesananTerbaru = Transaksi::with(['user', 'detailTransaksi']) // Eager load untuk performa
+        $pesananTerbaru = Transaksi::with(['user', 'detailTransaksi'])
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
         return view('admin.dashboard', compact(
-            'totalPenjualan',
-            'pesananBaru',
-            'pesananDiproses',
-            'totalStok',
-            'produkTerjual',
-            'pesananTerbaru'
+            'totalPenjualan', 'pesananBaru', 'pesananDiproses',
+            'totalStok', 'stokMenipisCount', 'produkTerjual', 'pesananTerbaru'
         ));
+    }
+
+// API UNTUK AJAX DASHBOARD
+    public function getDashboardStats()
+    {
+        $idCustom = $this->getCustomCakeId(); // Ambil ID dinamis
+
+        $totalPenjualan = Transaksi::where('status', 'Selesai')->sum('total');
+        $pesananBaru = Transaksi::whereIn('status', ['Menunggu Konfirmasi', 'Akan Diproses'])->count();
+        $pesananDiproses = Transaksi::where('status', 'Diproses')->count();
+        $totalStok = Product::whereNull('deleted_at')->where('id', '!=', $idCustom)->sum('stok');
+        $produkTerjual = DetailTransaksi::whereHas('transaksi', function ($query) {
+            $query->where('status', 'Selesai');
+        })->sum('jumlah');
+
+        $latestOrders = Transaksi::with(['user', 'detailTransaksi'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($order) {
+                $isCustom = $order->detailTransaksi->contains(fn($d) => !empty($d->catatan));
+                
+                $statusClass = match($order->status) {
+                    'Menunggu Konfirmasi' => 'bg-yellow-50 text-yellow-700 border-yellow-100',
+                    'Akan Diproses' => 'bg-blue-50 text-blue-700 border-blue-100',
+                    'Diproses' => 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                    'Selesai' => 'bg-green-50 text-green-700 border-green-100',
+                    'Dibatalkan' => 'bg-red-50 text-red-700 border-red-100',
+                    default => 'bg-gray-50 text-gray-600 border-gray-100'
+                };
+
+                return [
+                    'id' => $order->id,
+                    'kode' => $order->kode_transaksi ?? $order->id,
+                    'waktu' => $order->created_at->diffForHumans(),
+                    'customer_name' => $order->user->name ?? 'Guest',
+                    'customer_email' => $order->user->email ?? '-',
+                    'total' => number_format($order->total, 0, ',', '.'),
+                    'status' => $order->status,
+                    'status_class' => $statusClass,
+                    'payment' => strtoupper(str_replace('_', ' ', $order->metode_pembayaran)),
+                    'is_custom' => $isCustom,
+                    'item_count' => $order->detailTransaksi->count(),
+                    'link_detail' => route('admin.pesanan.show', $order->id)
+                ];
+            });
+
+        return response()->json([
+            'totalPenjualan' => number_format($totalPenjualan, 0, ',', '.'),
+            'pesananBaru' => $pesananBaru,
+            'pesananDiproses' => $pesananDiproses,
+            'totalStok' => number_format($totalStok),
+            'produkTerjual' => $produkTerjual,
+            'orders' => $latestOrders
+        ]);
     }
 
     public function index()
@@ -137,23 +192,22 @@ class ProductController extends Controller
         }
     }
 
+// HALAMAN UTAMA (CUSTOMER)
     public function indexHome()
     {
-        $idProdukKustom = 23;
+        $idCustom = $this->getCustomCakeId(); // ID Dinamis
+
         $products = Product::query()
-            ->where('id', '!=', $idProdukKustom) // 1. Jangan tampilkan kue kustom
-            ->where('stok', '>', 0)              // 2. Pastikan stok ada
-            ->withSum('detailTransaksi as total_terjual', 'jumlah') // 3. Hitung total 'jumlah' dari tabel detail_transaksi
-            ->orderByDesc('total_terjual')       // 4. Urutkan dari yang paling banyak terjual
-            ->take(3)                            // 5. Ambil 3 atau 4 produk teratas
+            ->where('id', '!=', $idCustom) // Jangan tampilkan kue kustom
+            ->whereNull('deleted_at')      // Pastikan tidak terhapus
+            ->withSum('detailTransaksi as total_terjual', 'jumlah')
+            ->orderByDesc('total_terjual')
+            ->take(3)
             ->get();
 
-
-            // Jika data penjualan masih kosong (toko baru), 
-        // fallback ke produk terbaru agar tidak kosong
         if ($products->isEmpty() || $products->sum('total_terjual') == 0) {
-            $products = Product::where('id', '!=', $idProdukKustom)
-                ->where('stok', '>', 0)
+            $products = Product::where('id', '!=', $idCustom)
+                ->whereNull('deleted_at')
                 ->latest()
                 ->take(3)
                 ->get();
@@ -162,32 +216,37 @@ class ProductController extends Controller
         return view('dashboard', compact('products'));
     }
 
+// LIST PRODUK (CUSTOMER)
     public function daftarProdukCustomer()
     {
-        // Ambil semua produk, urutkan dari yang terbaru, dan gunakan paginasi
-        // Paginate(8) berarti 8 produk per halaman
-        $products = Product::where('stok', '>', 0)->where('id', '!=', 23)->latest()->paginate(8);
+        $idCustom = $this->getCustomCakeId(); // ID Dinamis
+
+        $products = Product::where('id', '!=', $idCustom)
+            ->whereNull('deleted_at')
+            ->latest()
+            ->paginate(8);
+            
         $categories = Jenis::all();
 
-        // Kirim data products ke view
         return view('customer.produk.list', compact('products', 'categories'));
     }
 
+// DETAIL PRODUK
     public function showDetail(Product $product)
     {
-        // 1. Eager load ulasan beserta user yang menulisnya agar hemat query
-        // Urutkan dari ulasan terbaru
-        $product->load(['ulasan.user' => function($query) {
+        $idCustom = $this->getCustomCakeId(); // ID Dinamis
+
+        $product->load(['ulasan.user' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }]);
 
-        // 2. Hitung statistik rating (Opsional, untuk tampilan bintang)
         $totalUlasan = $product->ulasan->count();
         $avgRating = $totalUlasan > 0 ? $product->ulasan->avg('rating') : 0;
 
-        // 3. Produk Terkait (Logika lama Anda)
         $relatedProducts = Product::where('jenis_id', $product->jenis_id)
             ->where('id', '!=', $product->id)
+            ->where('id', '!=', $idCustom) // Exclude Custom Cake
+            ->whereNull('deleted_at')
             ->latest()
             ->take(4)
             ->get();
@@ -206,7 +265,4 @@ class ProductController extends Controller
         $product->restore(); // Ini akan mengembalikan produk dari "tong sampah"
         return redirect()->back()->with('success', 'Produk berhasil ditampilkan kembali.');
     }
-
-
-    
 }

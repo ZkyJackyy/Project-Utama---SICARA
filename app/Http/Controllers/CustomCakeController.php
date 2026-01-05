@@ -12,15 +12,21 @@ class CustomCakeController extends Controller
 
     public function showCustomCakeForm()
     {
-        // GANTI 50 DENGAN ID PRODUK "Kue Kustom" ANDA DARI LANGKAH 1
-        $product = Product::find(23);
+        // --- PERBAIKAN: Cari ID secara dinamis (Anti Error) ---
+        // Jika produk "Kue Kustom" terhapus, sistem otomatis buat baru sekarang juga.
+        $product = Product::firstOrCreate(
+            ['nama_produk' => 'Kue Kustom'], // Cari nama ini
+            [
+                'harga' => 65000,      // Default jika dibuat baru
+                'stok' => 9999,
+                'berat' => 1000,
+                'deskripsi' => 'Base product for custom cake',
+                'jenis_id' => 10,       // Pastikan ada kategori ID 1
+                'gambar' => 'gambar/uaw.jpg' 
+            ]
+        );
 
-        if (!$product) {
-            // Jika produk "Kue Kustom" tidak ditemukan
-            return redirect()->route('customer.produk.list')->with('error', 'Halaman kustomisasi tidak tersedia.');
-        }
-
-        // Kirim data produk (untuk harga dasar) ke view
+        // Kirim data produk ke view
         return view('customer.produk.custom', compact('product'));
     }
 
